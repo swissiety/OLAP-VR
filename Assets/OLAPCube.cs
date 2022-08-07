@@ -38,7 +38,6 @@ public class OLAPCube : MonoBehaviour
         
         grid = new GameObject[xH,yH,zH];
 
-    	Debug.Log("cube generation starteed");
     	int x = 0;
     	float xHeight = xH*1.1f/2f;
     	float yHeight = yH*1.1f/2f;
@@ -107,6 +106,8 @@ public class OLAPCube : MonoBehaviour
                 var step = speed * Time.deltaTime;
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, target.transform.rotation, step);
             }
+                        
+            
         }
         previousMousePosition = Input.mousePosition;
 
@@ -119,7 +120,7 @@ public class OLAPCube : MonoBehaviour
         {
             // get the 2D position of the first mouse click
             firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-            Debug.Log(firstPressPos);
+            // Debug.Log(firstPressPos);
         }
         if (Input.GetMouseButtonUp(0))
         {
@@ -127,39 +128,48 @@ public class OLAPCube : MonoBehaviour
             secondPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             //create a vector from the first and second click positions
             currentSwipe = new Vector2(secondPressPos.x - firstPressPos.x, secondPressPos.y - firstPressPos.y);
-            //normalize the 2d vector
-            currentSwipe.Normalize();
 
-            if (LeftSwipe(currentSwipe))
-            {
-                target.transform.Rotate(0, 90, 0, Space.World);
-                Debug.Log("left");
-            }
-            else if (RightSwipe(currentSwipe))
-            {
-                target.transform.Rotate(0, -90, 0, Space.World);
-            	Debug.Log("right");
-            }
-            else if (UpLeftSwipe(currentSwipe))
-            {
-                target.transform.Rotate(90, 0, 0, Space.World);
-            	Debug.Log("upLeft");
-            }
-            else if (UpRightSwipe(currentSwipe))
-            {
-                target.transform.Rotate(0, 0, -90, Space.World);
-            	Debug.Log("upRight");
-            }
-            else if (DownLeftSwipe(currentSwipe))
-            {
-             	 target.transform.Rotate(0, 0, 90, Space.World);
-            	Debug.Log("downLeft");
-            }
-            else if (DownRightSwipe(currentSwipe))
-            {
-                target.transform.Rotate(-90, 0, 0, Space.World);
-            	Debug.Log("downRight");
-            }
+		// threshold 
+		if (  currentSwipe.sqrMagnitude > 10000 ){
+
+		    //normalize the 2d vector
+		    currentSwipe.Normalize();
+
+		    if (LeftSwipe(currentSwipe))
+		    {
+		        target.transform.Rotate(0, 90, 0, Space.World);
+		        Debug.Log("left");
+		    }
+		    else if (RightSwipe(currentSwipe))
+		    {
+		        target.transform.Rotate(0, -90, 0, Space.World);
+		    	Debug.Log("right");
+		    }
+		    else if (UpLeftSwipe(currentSwipe))
+		    {
+		        target.transform.Rotate(90, 0, 0, Space.World);
+		    	Debug.Log("upLeft");
+		    }
+		    else if (UpRightSwipe(currentSwipe))
+		    {
+		        target.transform.Rotate(0, 0, -90, Space.World);
+		    	Debug.Log("upRight");
+		    }
+		    else if (DownLeftSwipe(currentSwipe))
+		    {
+		     	 target.transform.Rotate(0, 0, 90, Space.World);
+		    	Debug.Log("downLeft");
+		    }
+		    else if (DownRightSwipe(currentSwipe))
+		    {
+		        target.transform.Rotate(-90, 0, 0, Space.World);
+		    	Debug.Log("downRight");
+		    }
+	      }else{
+	      		// reset
+	      		Debug.Log("RESET swipe");
+	      		target.transform.Rotate(0, 0, 0, Space.World);	
+	      }
         }
     }
 
