@@ -6,29 +6,64 @@ public class OLAPCube : MonoBehaviour
 {
 	//public GameObject parentLayer;
 	
-	List<string> xAxis;
-	List<string> yAxis;
-	List<string> zAxis;
+	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
+     	public GameObject myPrefab;
+	
+	private GameObject[,,] grid;
 
+
+	List<string> xAxis = new List<string>{ "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag" };
+	List<string> yAxis = new List<string>{ "Paderborn", "Bielefeld", "München", "Rotterdam", "NY", "Berlin", "Zürich"};
+	List<string> zAxis = new List<string>{ "Hosen","Schuhe", "Socken", "Tops" };
+	
 
     // Start is called before the first frame update
     void Start()
     {	
-	foreach( string x in xAxis){
+	    CreateCube(xAxis.Count, yAxis.Count, zAxis.Count);    
+    }
+    
+    public void CreateCube( int xH, int yH, int zH ){
+  	myPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);    	
+	/*
+	// cleanup possibly existing elements
+	for(int cx = 0; cx < grid.GetLength(0); cx++) {
+         for(int cy = 0; cy < grid.GetLength(1); cy++) {
+            for(int cz = 0; cz < grid.GetLength(2); cz++) {
+                Destroy(grid[cx,cy,cz]);
+            }
+         }
+        }
+        */
+        grid = new GameObject[xH,yH,zH];
+
+    	Debug.Log("cube generation starteed");
+    	int x = 0;
+    	float xHeight = xH*1.1f*1/2f;
+    	float yHeight = yH*1.1f*1/2f;
+    	float zHeight = zH*1.1f*1/2f;
+	foreach( string xName in xAxis){
 	
-		foreach( string y in yAxis){
-		
-			foreach( string z in zAxis){
-				GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				cube.transform.position = new Vector3(0, 0.5f, 0);
-				cube.transform.position = new Vector3(0, 0.5f, 0);
-			//	cube.layer = parentLayer;
-				
+		int y = 0;
+		foreach( string yName in yAxis){
+			int z = 0;
+			foreach( string zName in zAxis){
 			
-			}
-				
+			
+				// Instantiate at position, rotation.
+				GameObject cube = Instantiate(myPrefab, new Vector3(x*1.1f-xHeight, y*1.1f-yHeight, z*1.1f-zHeight), Quaternion.identity);
+				 
+				cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
+				cube.transform.SetParent(transform);
+ 
+				cube.name = "cell_"+x +"_"+ y +"_"+ z;
+				// cube.AddComponent();
+								
+			z++;
+			}		
+		y++;
 		}
-	
+	x++;
 	}
 	
 	

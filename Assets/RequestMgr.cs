@@ -6,18 +6,10 @@ using System.Net;
 using System;
 using System.Net.Sockets;
 using System.Xml.Serialization;
-using UnityEngine;
-
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 using System.Net.Http;
-
-
-[System.Serializable]
-class Connections{
-	public Dictionary < string, Connection > connections = new Dictionary < string, Connection > ();
-}
-
-
+using UnityEngine;
+using UnityEngine.Networking;
 
 public class RequestMgr : MonoBehaviour
 {
@@ -73,28 +65,63 @@ public class RequestMgr : MonoBehaviour
     		return true;
     	}
     
+   
+    
+      IEnumerator GetRequest(string url, Action<UnityWebRequest> callback)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        {
+            // Send the request and wait for a response
+            yield return webRequest.SendWebRequest();
+            
+            
+            string[] pages = url.Split('/');
+            int page = pages.Length - 1;
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
+                    callback(webRequest);
+                    break;
+            }
+            
+        }
+    }
+    
 		
-	public List<Connection> listConnections()
+	public Dictionary < string, string > listConnections()
 	{   
 		string URLString = buildBaseUrl()+"getConnections";
 		Debug.Log("load schema: "+ URLString); 
 
-		List<Connection> connections = new List<Connection>();
+		// var webrequest = GetRequest( URLString );
 		
-
-		//using var client = new HttpClient();
-		//var data = await client.GetFromJsonAsync<Connections>(URLString);
 		
-		Connections conns = JsonUtility.FromJson<Connections>("{\n  \"test\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:test\",\n    \"Description\" : \"Main version of test connection\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes!/test.xml\"\n  },\n  \"foodmart\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:foodmart;set schema \\\"foodmart\\\"\",\n    \"Description\" : \"Pentaho/Hyde FoodMart Database\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"https://raw.githubusercontent.com/pentaho/mondrian/master/demo/FoodMart.xml\"\n  }\n}");
+		// FIXME: get json data from the server! 
 
-		    foreach (KeyValuePair<string, Connection> entry  in conns.connections)
-		    {
-			Debug.Log( "-> "+ entry.Key );
-			connections.Add( new Connection( entry.Key, "Example Dataset" ) );
+		
+		string jsonstr = "{\n  \"test\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:test\",\n    \"Description\" : \"Main version of test connection\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes!/test.xml\"\n  },\n  \"foodmart\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:foodmart;set schema \\\"foodmart\\\"\",\n    \"Description\" : \"Pentaho/Hyde FoodMart Database\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"https://raw.githubusercontent.com/pentaho/mondrian/master/demo/FoodMart.xml\"\n  }\n}";
+		
+		var values = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string,string>>>(jsonstr);
+		
+		Dictionary < string, string >  connections = new Dictionary<string, string>();
+		foreach (KeyValuePair<string, Dictionary<string,string>> entry in values)
+		{
+		      string cname =  entry.Key;
+		      string descr=  entry.Value["Description"];
+		      connections.Add( cname, descr);
+			// Debug.Log( "name: "+ cname + " descr: "+descr );
+		}
 
-		    }
-
-		connections.Add( new Connection("foodmart", "Example Dataset" ) );
+//		connections.Add("foodmart", "Example Dataset" );
 		return connections;
 	}
 
@@ -147,10 +174,31 @@ serializer.UnreferencedObject +=
 	        return schema.dimensions;
         }
         
-    
-    
-    public void execute_pivot(){
-       Debug.Log("Pivot"); 
+        
+    IEnumerator GetRequest(string uri)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
+        {
+            // Request and wait for the desired page.
+            yield return webRequest.SendWebRequest();
+
+            string[] pages = uri.Split('/');
+            int page = pages.Length - 1;
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
+                    break;
+            }
+        }
     }
     
     

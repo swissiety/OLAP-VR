@@ -15,20 +15,31 @@ public class ConfigurationScene : MonoBehaviour
   	public SceneSwitcher switcher;
   	public RequestMgr requests;
 
-  	
+
   	void Start(){
   		// connectButton.interactable = false;
   		connectButton.onClick.AddListener(TaskOnClick);
   		// ip.onValueChanged.AddListener(TaskTextChanged);
   		
-  		// TODO: remove defaults?
+  		
+  		
+  	
+	StartCoroutine(AutoSelect());
+
+    }
+    
+    
+	    private IEnumerator AutoSelect()
+	    {
+		yield return new WaitForSeconds(0.3f);
+     	  	
+	  	// TODO: remove defaults
   		ip.text = "127.0.0.1";
   		port.text = "8080";
-  		
-  		
-  		// FIXME: remove in production!
+  		// FIXME: remove in production!  		
   		TaskOnClick();
-  	}
+	yield return null;
+	}
 
 	void TaskTextChanged(){
 		Toast.Show ("text changed", 1.0f);
@@ -39,8 +50,8 @@ public class ConfigurationScene : MonoBehaviour
 	}
 
 
-	void TaskOnClick(){		
-			
+	void TaskOnClick(){
+		
 		if( string.IsNullOrEmpty(ip.text.ToString()) || string.IsNullOrEmpty(port.text.ToString()) ){
 			Toast.Show ("Invalid connection configuration.");
 			return;
@@ -53,6 +64,7 @@ public class ConfigurationScene : MonoBehaviour
 		if( successful ){
 			requests.setServerConnection(ip.text.ToString(), Int32.Parse(port.text.ToString()));
 			switcher.switchTo(1);
+			Debug.Log("connect ok");
 		}else{
 			Toast.Show ("Connection to "+  ip.text.ToString() + ":"+ port.text.ToString() +" failed.", 2.0f);
 		}

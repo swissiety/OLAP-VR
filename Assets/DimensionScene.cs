@@ -40,7 +40,23 @@ public class DimensionScene : MonoBehaviour
 	}
 
 
+	StartCoroutine(AutoSelect());
+
     }
+    
+    
+    private IEnumerator AutoSelect()
+    {
+	yield return new WaitForSeconds(0.3f);
+     	// FIXME: remove in production!
+	dropdowns[0].value = 0;
+	dropdowns[1].value = 3;	
+	dropdowns[2].value = 4;
+	TaskOnClick();
+	
+	yield return null;     
+    }
+    
     
     
 	void TaskOnClick(){
