@@ -47,14 +47,13 @@ public class DimensionScene : MonoBehaviour
     
     private IEnumerator AutoSelect()
     {
-	yield return new WaitForSeconds(0.3f);
+	yield return new WaitForSeconds(0.6f);
      	// FIXME: remove in production!
 	dropdowns[0].value = 0;
 	dropdowns[1].value = 3;	
 	dropdowns[2].value = 4;
 	TaskOnClick();
 	
-	yield return null;     
     }
     
     
@@ -73,6 +72,8 @@ public class DimensionScene : MonoBehaviour
 		string dd1 = dropdowns[0].options[dropdowns[0].value].text;
 		string dd2 = dropdowns[1].options[dropdowns[1].value].text;
 		string dd3 = dropdowns[2].options[dropdowns[2].value].text;
+		
+		Debug.Log("Dimensions "+dd1+" "+ dd2 + " "+ dd3 +" were chosen.");
 		
 		requests.setDimensions( dd1, dd2, dd3);
 		
