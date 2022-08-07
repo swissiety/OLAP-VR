@@ -73,7 +73,7 @@ public class DimensionScene : MonoBehaviour
 		string dd2 = dropdowns[1].options[dropdowns[1].value].text;
 		string dd3 = dropdowns[2].options[dropdowns[2].value].text;
 		
-		Debug.Log("Dimensions "+dd1+" "+ dd2 + " "+ dd3 +" were chosen.");
+		Debug.Log("Dimensions ["+dd1+", "+ dd2 + ", "+ dd3 +"] were chosen.");
 		
 		requests.setDimensions( dd1, dd2, dd3);
 		
