@@ -19,7 +19,7 @@ public class RequestMgr : MonoBehaviour
 	string x = "";
 	string y = "";
 	string z = "";
-	OLAPSchema schema;
+	public OLAPSchema schema {get;set;}
 	
 	
 	public void setServerConnection(string ip, int port){

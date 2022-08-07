@@ -9,7 +9,8 @@ public class OLAPCube : MonoBehaviour
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
 	
-	private GameObject[,,] grid;
+	private GameObject[,,] grid = new GameObject[0,0,0];
+	
 
 
 	List<string> xAxis = new List<string>{ "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag" };
@@ -18,14 +19,14 @@ public class OLAPCube : MonoBehaviour
 	
 
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {	
 	    CreateCube(xAxis.Count, yAxis.Count, zAxis.Count);    
     }
     
     public void CreateCube( int xH, int yH, int zH ){
   	myPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);    	
-	/*
+	
 	// cleanup possibly existing elements
 	for(int cx = 0; cx < grid.GetLength(0); cx++) {
          for(int cy = 0; cy < grid.GetLength(1); cy++) {
@@ -34,14 +35,14 @@ public class OLAPCube : MonoBehaviour
             }
          }
         }
-        */
+        
         grid = new GameObject[xH,yH,zH];
 
     	Debug.Log("cube generation starteed");
     	int x = 0;
-    	float xHeight = xH*1.1f*1/2f;
-    	float yHeight = yH*1.1f*1/2f;
-    	float zHeight = zH*1.1f*1/2f;
+    	float xHeight = xH*1.1f/2f;
+    	float yHeight = yH*1.1f/2f;
+    	float zHeight = zH*1.1f/2f;
 	foreach( string xName in xAxis){
 	
 		int y = 0;
@@ -77,25 +78,25 @@ public class OLAPCube : MonoBehaviour
     private Vector2 currentSwipe;
     private Vector3 previousMousePosition;
     private Vector3 mouseDelta;
-    private float speed = 200f;
+    private float speed = 400f;
     public GameObject target;    
 
 
 
     // Update is called once per frame
     void Update()
-    {
+    {        
         Swipe();
         Drag();
     }
 
     void Drag()
     {
-        if (Input.GetMouseButton(1))
+        if (Input.GetMouseButton(0))
         {
             // while the mouse is held down the cube can be moved around its central axis to provide visual feedback
             mouseDelta = Input.mousePosition - previousMousePosition;
-            mouseDelta *= 0.1f; // reduction of rotation speed
+            mouseDelta *= 0.2f; // reduction of rotation speed
             transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
         }
         else
@@ -114,13 +115,13 @@ public class OLAPCube : MonoBehaviour
 
     void Swipe()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(0))
         {
             // get the 2D position of the first mouse click
             firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             Debug.Log(firstPressPos);
         }
-        if (Input.GetMouseButtonUp(1))
+        if (Input.GetMouseButtonUp(0))
         {
             // get the 2D poition of the second mouse click
             secondPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
@@ -131,27 +132,33 @@ public class OLAPCube : MonoBehaviour
 
             if (LeftSwipe(currentSwipe))
             {
-                target.transform.Rotate(0, 90, 0, Space.World);
+              //  target.transform.Rotate(0, 90, 0, Space.Self);
+                Debug.Log("left");
             }
             else if (RightSwipe(currentSwipe))
             {
-                target.transform.Rotate(0, -90, 0, Space.World);
+               // target.transform.Rotate(0, -90, 0, Space.Self);
+            	Debug.Log("right");
             }
             else if (UpLeftSwipe(currentSwipe))
             {
-                target.transform.Rotate(90, 0, 0, Space.World);
+                // target.transform.Rotate(90, 0, 0, Space.Self);
+            	Debug.Log("upLeft");
             }
             else if (UpRightSwipe(currentSwipe))
             {
-                target.transform.Rotate(0, 0, -90, Space.World);
+                // target.transform.Rotate(0, 0, -90, Space.Self);
+            	Debug.Log("upRight");
             }
             else if (DownLeftSwipe(currentSwipe))
             {
-                target.transform.Rotate(0, 0, 90, Space.World);
+                // target.transform.Rotate(0, 0, 90, Space.Self);
+            	Debug.Log("downLeft");
             }
             else if (DownRightSwipe(currentSwipe))
             {
-                target.transform.Rotate(-90, 0, 0, Space.World);
+                // target.transform.Rotate(-90, 0, 0, Space.Self);
+            	Debug.Log("downRight");
             }
         }
     }
