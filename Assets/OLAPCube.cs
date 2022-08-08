@@ -17,17 +17,14 @@ public class OLAPCube : MonoBehaviour
      	int xLevel = 0;
      	int yLevel = 0;
      	int zLevel = 0;
-     
+	
+     	// represents the current dimension currently assigned to an axis
      	int xAxisMap;
     	int yAxisMap;
     	int zAxisMap;
      	
 	private GameObject[,,] grid = new GameObject[0,0,0];
 	
-	// actual data
-	private List<string> xMembers = new List<string>();
-	private List<string> yMembers = new List<string>();
-	private List<string> zMembers = new List<string>();
 	
 
     // Start is called before the first frame update
@@ -37,37 +34,38 @@ public class OLAPCube : MonoBehaviour
     	xAxisMap = requests.x;
     	yAxisMap = requests.y;
     	zAxisMap = requests.z;
-    	
-    	// hint: there could be multiple hierarchys.. ignore for now.
-    	xMembers = requests.listMembersOfLevel( xAxisMap, xLevel );
-	yMembers = requests.listMembersOfLevel( yAxisMap, yLevel );
-	zMembers = requests.listMembersOfLevel( zAxisMap, zLevel );
-	
-	CreateCube(xMembers.Count, yMembers.Count, zMembers.Count);
+    		
+	CreateCube(requests.listMembersOfLevel( xAxisMap, xLevel ).Count,
+				requests.listMembersOfLevel( yAxisMap, yLevel ).Count,
+				requests.listMembersOfLevel( zAxisMap, zLevel ).Count );
 	    
     	// TODO: make axis drawn text clickable if there is more hierarchy
-    	
-	     
+    		     
     }
         
     
     void UpdateAxis(){
 	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
-	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMembers );
+	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), requests.listMembersOfLevel( xAxisMap, xLevel ) );
 
 
 	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
-	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMembers );
+	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), requests.listMembersOfLevel( yAxisMap, yLevel ) );
 
 
 	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
-	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMembers);
+	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), requests.listMembersOfLevel( zAxisMap, zLevel ));
     }
 
    
-    void AxisOnClick(GameObject axis){
-    	Debug.Log("axis clicked");
-    		
+    void AxisOnClick(GameObject axis, int axisDimension, ref int axisLevel ){
+    
+    	Debug.Log( axis.name +" clicked");
+    	if(axisLevel > 0){
+	    	Debug.Log( "zoom out.");
+    		axisLevel--;
+    		UpdateAxis();
+    	}
     }
     
     
@@ -143,15 +141,15 @@ public class OLAPCube : MonoBehaviour
 		   if(hit.collider.gameObject == axis[0]){
 		        //hit.collider.gameObject now refers to the 
 		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[0]);
+		        AxisOnClick(axis[0], xAxisMap, ref xLevel);
 		   }else            if(hit.collider.gameObject == axis[1]){
 		        //hit.collider.gameObject now refers to the 
 		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[1]);
+		        AxisOnClick(axis[1], yAxisMap, ref yLevel);
 		   } else            if(hit.collider.gameObject == axis[2]){
 		        //hit.collider.gameObject now refers to the 
 		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[2]);
+		        AxisOnClick(axis[2], zAxisMap, ref zLevel);
 		   }else{
 		   	firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 		   	dragRotate = true;
