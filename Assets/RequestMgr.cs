@@ -85,9 +85,17 @@ public class RequestMgr : MonoBehaviour
     	}
     
    
-   	public List<string> listMembersOf( string leveldescr){
-   		// FIXME 
+   	public List<string> listMembersOfLevel( int dimension, int levelIdx ){
+   		loadSchema();
+   		Debug.Log( "retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
+   		// FIXME incorporate   		
    		return new List<string>(){"bla", "bli", "blupp"};
+   	}
+   	
+   	public string getDimensionTitle( int dimension ){
+   		loadSchema();
+   		Debug.Log( "dimension title: "+ Schema.dimensions[ dimension ].dimensionName );
+   		return Schema.dimensions[ dimension ].dimensionName;
    	}
    
    

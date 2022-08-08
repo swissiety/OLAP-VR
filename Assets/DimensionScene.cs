@@ -28,6 +28,8 @@ public class DimensionScene : MonoBehaviour
 	// load and add data
 	requests.loadSchema();
 	
+	
+	// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..
 	List<Dimension> list = requests.listDimensions();
 	dropdowns[ 0 ].options.Clear ();
 	dropdowns[ 1 ].options.Clear ();

@@ -21,6 +21,7 @@ public class CubeChooseScene : MonoBehaviour
 	    	// indicate loading: loader + dropdown.SetActive( false );
 	    	OLAPSchema schema = requests.getSchema();
 	    	
+	    
 	    	if( schema == null || schema.cubes.Count <= 0 ){
 	    		Toast.Show("Loading OLAPSChema/Cube Data failed.", 5.0f);
     			Debug.Log("cube loading failed");

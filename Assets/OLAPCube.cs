@@ -23,8 +23,8 @@ public class OLAPCube : MonoBehaviour
     	int zAxisMap;
      	
 	private GameObject[,,] grid = new GameObject[0,0,0];
-	private TextMeshProUGUI[,,] axisDescr;
 	
+	// actual data
 	private List<string> xMembers = new List<string>();
 	private List<string> yMembers = new List<string>();
 	private List<string> zMembers = new List<string>();
@@ -38,15 +38,12 @@ public class OLAPCube : MonoBehaviour
     	yAxisMap = requests.y;
     	zAxisMap = requests.z;
     	
-    	// FIXME
     	// hint: there could be multiple hierarchys.. ignore for now.
-    	xMembers = requests.listMembersOf( schema.dimensions[ xAxisMap ].hierarchy[0].levels[xLevel].levelName );
-	yMembers = requests.listMembersOf(schema.dimensions[ xAxisMap ].hierarchy[0].levels[yLevel].levelName);
-	zMembers = requests.listMembersOf(schema.dimensions[ xAxisMap ].hierarchy[0].levels[zLevel].levelName);
+    	xMembers = requests.listMembersOfLevel( xAxisMap, xLevel );
+	yMembers = requests.listMembersOfLevel( yAxisMap, yLevel );
+	zMembers = requests.listMembersOfLevel( zAxisMap, zLevel );
 	
-    
-    	// FIXME: incorporate OLAPDimension
-	CreateCube(5, 7, 4);
+	CreateCube(xMembers.Count, yMembers.Count, zMembers.Count);
 	    
     	// TODO: make axis drawn text clickable if there is more hierarchy
     	
@@ -54,45 +51,19 @@ public class OLAPCube : MonoBehaviour
     }
         
     
-    public void UpdateAxis(){
+    void UpdateAxis(){
+	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
+	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMembers );
 
-    	int xLen = xMembers.Count;
-    	int yLen = yMembers.Count;
-    	int zLen = zMembers.Count;
-    	
-    	// size
-    	axis[0].transform.position = new Vector3(-zLen/2, 0, -xLen/2);
-    	axis[0].transform.localScale = new Vector3(0,0, xLen+1);
 
-    	axis[1].transform.position= new Vector3(-zLen/2, yLen/2, 0);
-    	axis[1].transform.localScale = new Vector3(0, yLen, 0);
+	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
+	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMembers );
 
-    	axis[2].transform.position = new Vector3(0,0,-xLen);
-    	axis[2].transform.localScale = new Vector3(zLen,0,0);
-    	
-    	// TODO: set dimension text 
-    	//axis[0].GetComponent<TMPro>().text = "x Axis"
-    	//axis[1].GetComponent<TMPro>().text = "y Axis"
-    	//axis[2].GetComponent<TMPro>().text = "z Axis"
-    	
-    	
-    	// cleanup
-    	for(int cx = 0; cx < axisDescr.GetLength(0); cx++) {
-         for(int cy = 0; cy < axisDescr.GetLength(1); cy++) {
-            for(int cz = 0; cz < axisDescr.GetLength(2); cz++) {
-                Destroy(axisDescr[cx,cy,cz]);
-            }
-         }
-        }
 
-    	// TODO: draw texts of cells
-    	
-    	// axisDescr = new GameObject[,,]; 
-    	// for ... GameObject.CreatePrimitive(PrimitiveType.Cube);
-    	    
+	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
+	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMembers);
     }
-    
-    
+
    
     void AxisOnClick(GameObject axis){
     	Debug.Log("axis clicked");
@@ -141,7 +112,8 @@ public class OLAPCube : MonoBehaviour
         
         myPrefab.SetActive(false);   
     }
-
+    
+    
 
     private Vector2 firstPressPos;
     private Vector2 secondPressPos;
