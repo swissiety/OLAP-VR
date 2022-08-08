@@ -84,12 +84,30 @@ public class RequestMgr : MonoBehaviour
     		return true;
     	}
     
+    
+    	Dictionary<string, List<string>> membersOfLevelCache = new Dictionary<string, List<string>>();
    
    	public List<string> listMembersOfLevel( int dimension, int levelIdx ){
    		loadSchema();
    		Debug.Log( "retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
    		// FIXME incorporate   		
-   		return new List<string>(){"bla", "bli", "blupp"};
+   		
+   		string key = Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName;
+   		if( membersOfLevelCache.ContainsKey( key) ){
+   			return membersOfLevelCache[ key ];
+   		}
+   		
+   		
+   		// FIXME: query real members!
+   		if( dimension == 0){
+   			membersOfLevelCache[ key ] = new List<string>(){"bla", "bli", "blupp"}; 
+   		}else if(dimension == 3 ) {
+	   		membersOfLevelCache[ key ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
+   		}else{
+   			membersOfLevelCache[ key ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
+   		}
+   		
+   		return membersOfLevelCache[ key ];
    	}
    	
    	public string getDimensionTitle( int dimension ){

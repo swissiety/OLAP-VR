@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class ChartAxis : MonoBehaviour
 {
+	GameObject titleText;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+	titleText = new GameObject();
+	TextMesh t = titleText.AddComponent<TextMesh>();
+	
+	titleText.transform.rotation = Quaternion.identity;
+	titleText.transform.SetParent(transform);
     }
 
     // Update is called once per frame
@@ -44,15 +50,15 @@ public class ChartAxis : MonoBehaviour
     	// axisDescr = new GameObject[,,]; 
     	// for ... GameObject.CreatePrimitive(PrimitiveType.Cube);
     	    
-     
-	GameObject text = new GameObject();
-	TextMesh t = text.AddComponent<TextMesh>();
-	t.text = title + "Axis";
+	titleText.name = "axis:"+title;
+
+	TextMesh t = titleText.GetComponent<TextMesh>();
+	t.text = title + " axis";
 	t.fontSize = 24;
 	t.color = Color.black;
 	
-	t.transform.localEulerAngles += new Vector3(90, 0, 0);
-	t.transform.localPosition += new Vector3(56f, 3f, 40f);
+//	t.transform.localEulerAngles += new Vector3(90, 0, 0);
+//	t.transform.localPosition += new Vector3(56f, 3f, 40f);
 
      }
 }

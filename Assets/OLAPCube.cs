@@ -121,15 +121,17 @@ public class OLAPCube : MonoBehaviour
     private Vector3 previousMousePosition;
     private Vector3 mouseDelta;
     private float speed = 400f;
-    public GameObject target;    
+    public GameObject target;  
+    bool dragRotate = false;  
 
 
 
     // Update is called once per frame
     void Update()
     {        
-        Swipe();
-        Drag();
+    
+
+
         
         
         // Axis' Stuff
@@ -150,48 +152,49 @@ public class OLAPCube : MonoBehaviour
 		        //hit.collider.gameObject now refers to the 
 		        //cube under the mouse cursor if present
 		        AxisOnClick(axis[2]);
+		   }else{
+		   	firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+		   	dragRotate = true;
 		   }
+	      }else{
+	           firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+	      	   dragRotate = true;
 	      }
       }
+      
+              
+        DragEnd();
+        
+		if ( Input.GetMouseButton(0))
+		{
+			if(dragRotate){
+		    // while the mouse is held down the cube can be moved around its central axis to provide visual feedback
+		    mouseDelta = Input.mousePosition - previousMousePosition;
+		    mouseDelta *= 0.2f; // reduction of rotation speed
+		    transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
+		    }
+		}
+		else
+		{
+		    // automatically move to the target position
+		    if (transform.rotation != target.transform.rotation)
+		    {
+		        var step = speed * Time.deltaTime;
+		        transform.rotation = Quaternion.RotateTowards(transform.rotation, target.transform.rotation, step);
+		    }       
+		}
+        
+      previousMousePosition = Input.mousePosition;
 
         
     }
 
-    void Drag()
+    void DragEnd()
     {
-        if (Input.GetMouseButton(0))
-        {
-            // while the mouse is held down the cube can be moved around its central axis to provide visual feedback
-            mouseDelta = Input.mousePosition - previousMousePosition;
-            mouseDelta *= 0.2f; // reduction of rotation speed
-            transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
-        }
-        else
-        {
-            // automatically move to the target position
-            if (transform.rotation != target.transform.rotation)
-            {
-                var step = speed * Time.deltaTime;
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, target.transform.rotation, step);
-            }
-                        
-            
-        }
-        previousMousePosition = Input.mousePosition;
 
-
-    }
-
-    void Swipe()
-    {
-        if (Input.GetMouseButtonDown(0))
+        if (dragRotate && Input.GetMouseButtonUp(0))
         {
-            // get the 2D position of the first mouse click
-            firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-            // Debug.Log(firstPressPos);
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
+        dragRotate = false;
             // get the 2D poition of the second mouse click
             secondPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             //create a vector from the first and second click positions
