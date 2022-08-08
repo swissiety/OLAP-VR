@@ -39,7 +39,7 @@ public class SceneSwitcher : MonoBehaviour
 		currentSceneIdx = idx;
 		
 		// hide in CubeScene
-		rotatingCube.SetActive( idx != 3 );
+		rotatingCube.SetActive( idx != 4 );
 		
     	}else{
     		Debug.Log("SceneSwitcher.switchTo() got an illegal Parameter: "+ idx);

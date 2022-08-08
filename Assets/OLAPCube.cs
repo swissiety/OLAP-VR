@@ -39,9 +39,9 @@ public class OLAPCube : MonoBehaviour
         grid = new GameObject[xH,yH,zH];
 
     	int x = 0;
-    	float xHeight = xH*1.1f/2f;
-    	float yHeight = yH*1.1f/2f;
-    	float zHeight = zH*1.1f/2f;
+    	float xHeight = (xH-1)*1.1f/2;
+    	float yHeight = (yH-1)*1.1f/2;
+    	float zHeight = (zH-1)*1.1f/2;
 	foreach( string xName in xAxis){
 	
 		int y = 0;

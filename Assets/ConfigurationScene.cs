@@ -38,7 +38,6 @@ public class ConfigurationScene : MonoBehaviour
   		port.text = "8080";
   		// FIXME: remove in production!  		
   		TaskOnClick();
-	yield return null;
 	}
 
 	void TaskTextChanged(){

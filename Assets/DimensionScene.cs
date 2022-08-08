@@ -77,7 +77,7 @@ public class DimensionScene : MonoBehaviour
 		
 		requests.setDimensions( dd1, dd2, dd3);
 		
-		switcher.switchTo(3);
+		switcher.switchTo(4);
 	}
     
  

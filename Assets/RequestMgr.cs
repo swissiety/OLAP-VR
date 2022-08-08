@@ -13,13 +13,17 @@ using UnityEngine.Networking;
 
 public class RequestMgr : MonoBehaviour
 {
+
+	public OLAPSchema Schema;
+	public string Cube;
+	
 	string ip = "";
 	int port = 8080;
 	string connectionName = "";
 	string x = "";
 	string y = "";
 	string z = "";
-	public OLAPSchema schema {get;set;}
+	
 	
 	
 	public void setServerConnection(string ip, int port){
@@ -27,9 +31,24 @@ public class RequestMgr : MonoBehaviour
 		this.port = port;
 	}
 	
+	
 	string buildBaseUrl(){
 		return "http://"+ip+":"+port+"/";
 	}
+	
+	public void setCube(string name){
+		this.Cube = name;
+	}
+	
+	public string getCube(){
+		return Cube;
+	}
+		
+	public OLAPSchema getSchema(){
+		return Schema;
+	}
+	
+	
 	
 	public void setConnection(string name){
 		this.connectionName = name;
@@ -129,7 +148,7 @@ public class RequestMgr : MonoBehaviour
 	public bool loadSchema()
     	{   
     	
-    		if( schema != null ){
+    		if( Schema != null ){
     			return true;
     		}
 		string URLString = buildBaseUrl()+"getSchema?connectionName="+ connectionName;
@@ -161,7 +180,7 @@ serializer.UnreferencedObject +=
 		
 		using (XmlTextReader reader = new XmlTextReader (URLString))
 		{
-			this.schema = (OLAPSchema) serializer.Deserialize(reader);
+			this.Schema = (OLAPSchema) serializer.Deserialize(reader);
 
 			Debug.Log("schema loaded for "+ URLString); 
 			return true;
@@ -171,7 +190,7 @@ serializer.UnreferencedObject +=
         
         public List<Dimension> listDimensions(){
 	        loadSchema();
-	        return schema.dimensions;
+	        return Schema.dimensions;
         }
         
         

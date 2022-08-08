@@ -51,7 +51,6 @@ public class ConnectionScene : MonoBehaviour
 	    	yield return new WaitForSeconds(0.3f);
 	  	dropdown.value = 2;
 	    	OnSelect();
-	    	yield return null;
 	}
     
     
