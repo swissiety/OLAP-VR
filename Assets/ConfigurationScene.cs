@@ -20,14 +20,14 @@ public class ConfigurationScene : MonoBehaviour
   		// connectButton.interactable = false;
   		connectButton.onClick.AddListener(TaskOnClick);
   		// ip.onValueChanged.AddListener(TaskTextChanged);
-  		
-  		
-  		
   	
 	StartCoroutine(AutoSelect());
 
     }
     
+    void OnDisable(){
+         StopCoroutine("AutoSelect");
+    }
     
 	    private IEnumerator AutoSelect()
 	    {

@@ -14,26 +14,25 @@ using UnityEngine.Networking;
 public class RequestMgr : MonoBehaviour
 {
 
-	public OLAPSchema Schema;
+	OLAPSchema Schema;
 	public string Cube;
 	
-	string ip = "";
+	string host = "";
 	int port = 8080;
 	string connectionName = "";
-	string x = "";
-	string y = "";
-	string z = "";
-	
+	public int x = -1;
+	public int y = -1;
+	public int z = -1;
 	
 	
 	public void setServerConnection(string ip, int port){
-		this.ip = ip;
+		this.host = ip;
 		this.port = port;
 	}
 	
 	
 	string buildBaseUrl(){
-		return "http://"+ip+":"+port+"/";
+		return "http://"+host+":"+port+"/";
 	}
 	
 	public void setCube(string name){
@@ -45,6 +44,7 @@ public class RequestMgr : MonoBehaviour
 	}
 		
 	public OLAPSchema getSchema(){
+		loadSchema();
 		return Schema;
 	}
 	
@@ -58,7 +58,7 @@ public class RequestMgr : MonoBehaviour
 		return connectionName;
 	}
 	
-	public void setDimensions(string x, string y, string z){
+	public void setDimensions(int x, int y, int z){
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -84,6 +84,12 @@ public class RequestMgr : MonoBehaviour
     		return true;
     	}
     
+   
+   	public List<string> listMembersOf( string leveldescr){
+   		// FIXME 
+   		return new List<string>(){"bla", "bli", "blupp"};
+   	}
+   
    
     
       IEnumerator GetRequest(string url, Action<UnityWebRequest> callback)

@@ -44,6 +44,9 @@ public class DimensionScene : MonoBehaviour
 
     }
     
+    void OnDisable(){
+         StopCoroutine("AutoSelect");
+    }
     
     private IEnumerator AutoSelect()
     {
@@ -75,7 +78,7 @@ public class DimensionScene : MonoBehaviour
 		
 		Debug.Log("Dimensions ["+dd1+", "+ dd2 + ", "+ dd3 +"] were chosen.");
 		
-		requests.setDimensions( dd1, dd2, dd3);
+		requests.setDimensions( dropdowns[0].value, dropdowns[1].value, dropdowns[2].value);
 		
 		switcher.switchTo(4);
 	}

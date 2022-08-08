@@ -20,10 +20,9 @@ public class OLAPSchema
 	
 	// List<VirtualCube> vcubes;
 	// List<Role> roles;
-	// CalculatedMember cmembers;
+	// CalculatedMember cmembers;	
 	
 }
-
 
 public class Measure{
  
@@ -82,9 +81,13 @@ public class Hierarchy
 	
 	[XmlAttribute]
 	public string primaryKeyTable;
+
+	// [XmlIgnore("View")]	
+	//[XmlElement("Join")]
+	//public Join join;
 	
-	[XmlElement("Join")]
-	public Join join;
+	// [XmlIgnore("View")]
+	// public View view;
 }
 
 public class Table{

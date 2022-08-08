@@ -34,7 +34,12 @@ public class SceneSwitcher : MonoBehaviour
     public void switchTo( int idx){
    	
     	if(currentSceneIdx >= 0 && idx < scenes.Length){
-    		scenes[currentSceneIdx].SetActive(false);    	
+    	
+    	//	scenes[currentSceneIdx].SetActive(false);    	
+		foreach( var scene in scenes ){
+			scene.SetActive(false);    	
+		}
+		
 	    	scenes[idx].SetActive(true);
 		currentSceneIdx = idx;
 		

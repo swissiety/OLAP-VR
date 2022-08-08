@@ -46,6 +46,9 @@ public class ConnectionScene : MonoBehaviour
 
     }
     
+    void OnDisable(){
+         StopCoroutine("AutoSelect");
+    }
     
 	private IEnumerator AutoSelect(){
 	    	yield return new WaitForSeconds(0.3f);

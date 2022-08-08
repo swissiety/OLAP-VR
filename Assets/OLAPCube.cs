@@ -1,28 +1,104 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class OLAPCube : MonoBehaviour
 {
-	//public GameObject parentLayer;
+	public RequestMgr requests;
 	
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
-	
+     	public GameObject[] axis;
+     
+     	public OLAPSchema schema; 	
+
+	// FIXME: incorporate rotating/pivoting the levels as well! 
+     	int xLevel = 0;
+     	int yLevel = 0;
+     	int zLevel = 0;
+     
+     	int xAxisMap;
+    	int yAxisMap;
+    	int zAxisMap;
+     	
 	private GameObject[,,] grid = new GameObject[0,0,0];
+	private TextMeshProUGUI[,,] axisDescr;
 	
-
-
-	List<string> xAxis = new List<string>{ "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag" };
-	List<string> yAxis = new List<string>{ "Paderborn", "Bielefeld", "München", "Rotterdam", "NY", "Berlin", "Zürich"};
-	List<string> zAxis = new List<string>{ "Hosen","Schuhe", "Socken", "Tops" };
+	private List<string> xMembers = new List<string>();
+	private List<string> yMembers = new List<string>();
+	private List<string> zMembers = new List<string>();
 	
 
     // Start is called before the first frame update
     void OnEnable()
     {	
-	    CreateCube(xAxis.Count, yAxis.Count, zAxis.Count);    
+    	// init
+    	xAxisMap = requests.x;
+    	yAxisMap = requests.y;
+    	zAxisMap = requests.z;
+    	
+    	// FIXME
+    	// hint: there could be multiple hierarchys.. ignore for now.
+    	xMembers = requests.listMembersOf( schema.dimensions[ xAxisMap ].hierarchy[0].levels[xLevel].levelName );
+	yMembers = requests.listMembersOf(schema.dimensions[ xAxisMap ].hierarchy[0].levels[yLevel].levelName);
+	zMembers = requests.listMembersOf(schema.dimensions[ xAxisMap ].hierarchy[0].levels[zLevel].levelName);
+	
+    
+    	// FIXME: incorporate OLAPDimension
+	CreateCube(5, 7, 4);
+	    
+    	// TODO: make axis drawn text clickable if there is more hierarchy
+    	
+	     
     }
+        
+    
+    public void UpdateAxis(){
+
+    	int xLen = xMembers.Count;
+    	int yLen = yMembers.Count;
+    	int zLen = zMembers.Count;
+    	
+    	// size
+    	axis[0].transform.position = new Vector3(-zLen/2, 0, -xLen/2);
+    	axis[0].transform.localScale = new Vector3(0,0, xLen+1);
+
+    	axis[1].transform.position= new Vector3(-zLen/2, yLen/2, 0);
+    	axis[1].transform.localScale = new Vector3(0, yLen, 0);
+
+    	axis[2].transform.position = new Vector3(0,0,-xLen);
+    	axis[2].transform.localScale = new Vector3(zLen,0,0);
+    	
+    	// TODO: set dimension text 
+    	//axis[0].GetComponent<TMPro>().text = "x Axis"
+    	//axis[1].GetComponent<TMPro>().text = "y Axis"
+    	//axis[2].GetComponent<TMPro>().text = "z Axis"
+    	
+    	
+    	// cleanup
+    	for(int cx = 0; cx < axisDescr.GetLength(0); cx++) {
+         for(int cy = 0; cy < axisDescr.GetLength(1); cy++) {
+            for(int cz = 0; cz < axisDescr.GetLength(2); cz++) {
+                Destroy(axisDescr[cx,cy,cz]);
+            }
+         }
+        }
+
+    	// TODO: draw texts of cells
+    	
+    	// axisDescr = new GameObject[,,]; 
+    	// for ... GameObject.CreatePrimitive(PrimitiveType.Cube);
+    	    
+    }
+    
+    
+   
+    void AxisOnClick(GameObject axis){
+    	Debug.Log("axis clicked");
+    		
+    }
+    
     
     public void CreateCube( int xH, int yH, int zH ){
   	myPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);    	
@@ -38,17 +114,15 @@ public class OLAPCube : MonoBehaviour
         
         grid = new GameObject[xH,yH,zH];
 
-    	int x = 0;
     	float xHeight = (xH-1)*1.1f/2;
     	float yHeight = (yH-1)*1.1f/2;
     	float zHeight = (zH-1)*1.1f/2;
-	foreach( string xName in xAxis){
+	for(int x = 0; x < xH; x++){
 	
-		int y = 0;
-		foreach( string yName in yAxis){
-			int z = 0;
-			foreach( string zName in zAxis){
+		
+		for(int y = 0; y < yH; y++){
 			
+			for(int z = 0; z < zH; z++){
 			
 				// Instantiate at position, rotation.
 				GameObject cube = Instantiate(myPrefab, new Vector3(x*1.1f-xHeight, y*1.1f-yHeight, z*1.1f-zHeight), Quaternion.identity);
@@ -57,18 +131,15 @@ public class OLAPCube : MonoBehaviour
 				cube.transform.SetParent(transform);
  
 				cube.name = "cell_"+x +"_"+ y +"_"+ z;
-				// cube.AddComponent();
 								
-			z++;
 			}		
-		y++;
 		}
-	x++;
 	}
 	
-	
+	UpdateAxis();
         
-           
+        
+        myPrefab.SetActive(false);   
     }
 
 
@@ -87,6 +158,31 @@ public class OLAPCube : MonoBehaviour
     {        
         Swipe();
         Drag();
+        
+        
+        // Axis' Stuff
+	if(Input.GetMouseButtonDown(0)){
+	     var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+	     RaycastHit hit;
+	      
+	      if(Physics.Raycast(ray,out hit)){
+		   if(hit.collider.gameObject == axis[0]){
+		        //hit.collider.gameObject now refers to the 
+		        //cube under the mouse cursor if present
+		        AxisOnClick(axis[0]);
+		   }else            if(hit.collider.gameObject == axis[1]){
+		        //hit.collider.gameObject now refers to the 
+		        //cube under the mouse cursor if present
+		        AxisOnClick(axis[1]);
+		   } else            if(hit.collider.gameObject == axis[2]){
+		        //hit.collider.gameObject now refers to the 
+		        //cube under the mouse cursor if present
+		        AxisOnClick(axis[2]);
+		   }
+	      }
+      }
+
+        
     }
 
     void Drag()
@@ -139,31 +235,43 @@ public class OLAPCube : MonoBehaviour
 		    {
 		        target.transform.Rotate(0, 90, 0, Space.World);
 		        Debug.Log("left");
+		        SwapDimension(ref xAxisMap,ref  zAxisMap);
+		        UpdateAxis();
 		    }
 		    else if (RightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(0, -90, 0, Space.World);
 		    	Debug.Log("right");
+		        SwapDimension(ref xAxisMap,ref  zAxisMap);
+		        UpdateAxis();
 		    }
 		    else if (UpLeftSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(90, 0, 0, Space.World);
 		    	Debug.Log("upLeft");
+		        SwapDimension(ref yAxisMap, ref zAxisMap);
+		        UpdateAxis();
 		    }
 		    else if (UpRightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(0, 0, -90, Space.World);
 		    	Debug.Log("upRight");
+		        SwapDimension(ref xAxisMap, ref yAxisMap);
+		        UpdateAxis();
 		    }
 		    else if (DownLeftSwipe(currentSwipe))
 		    {
 		     	 target.transform.Rotate(0, 0, 90, Space.World);
 		    	Debug.Log("downLeft");
+		        SwapDimension(ref yAxisMap, ref zAxisMap);
+		        UpdateAxis();
 		    }
 		    else if (DownRightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(-90, 0, 0, Space.World);
 		    	Debug.Log("downRight");
+		        SwapDimension(ref xAxisMap, ref yAxisMap);
+     			UpdateAxis();
 		    }
 	      }else{
 	      		// reset
@@ -201,6 +309,13 @@ public class OLAPCube : MonoBehaviour
     bool DownRightSwipe(Vector2 swipe)
     {
         return currentSwipe.y < 0 && currentSwipe.x > 0f;
-    }
- 
+    }   
+    
+    
+    static void SwapDimension<T>(ref T x, ref T y)
+{
+     T t = y;
+     y = x;
+     x = t;
+}
 }
