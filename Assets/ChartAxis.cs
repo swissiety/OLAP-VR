@@ -48,17 +48,20 @@ public class ChartAxis : MonoBehaviour
         {
             if(string.Equals(child.name, "cellDescrHolder")){
 		descrHolder = child;
+		Debug.Log("descr holder found");
             }
         }
+        
+        // adjust holder -> max UI.LayoutElement.preferredWidth 
 
 		
-	
 	int y = 0;
 	foreach( string cellDescrStr in cellDescriptions ){
 		// Instantiate at position, rotation
-		axisDescr[y] = Instantiate(myPrefab, new Vector3(0.2f, y*1.1f-height, -2 ), Quaternion.identity);
+		axisDescr[y] = Instantiate(myPrefab, descrHolder);
 		//cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
-		axisDescr[y].transform.SetParent(descrHolder);
+//		axisDescr[y].transform.SetParent(descrHolder);
+		axisDescr[y].transform.position = new Vector3(0.2f, y*1.1f-height, -2 );
 		axisDescr[y].name = "descr_"+cellDescrStr;
 		
 		TMP_Text[] descrText = axisDescr[y].GetComponentsInChildren<TMP_Text>();
