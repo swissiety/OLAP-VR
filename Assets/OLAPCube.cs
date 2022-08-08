@@ -7,6 +7,7 @@ public class OLAPCube : MonoBehaviour
 {
 	public RequestMgr requests;
 	
+	public GameObject chartHolder;
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
      	public GameObject[] axis;
@@ -46,15 +47,28 @@ public class OLAPCube : MonoBehaviour
     
     void UpdateAxis(){
 	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
-	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), requests.listMembersOfLevel( xAxisMap, xLevel ) );
+	List<string> xMember = requests.listMembersOfLevel( xAxisMap, xLevel );
+	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMember);
 
 
 	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
-	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), requests.listMembersOfLevel( yAxisMap, yLevel ) );
+	List<string> yMember = requests.listMembersOfLevel( yAxisMap, yLevel );
+
+	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMember);
 
 
 	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
-	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), requests.listMembersOfLevel( zAxisMap, zLevel ));
+	List<string> zMember = requests.listMembersOfLevel( zAxisMap, zLevel );
+	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMember);
+	
+	int maxDescr = Mathf.Max(Mathf.Max(xMember.Count, yMember.Count), zMember.Count);
+	float maxDim = (maxDescr+3) * 1.1f;
+
+	float scale = maxDim/6;
+	
+	// center & scale chartholder
+	chartHolder.transform.position = new Vector3(0 , -maxDim/2, maxDim/2 );
+	chartHolder.transform.localScale = new Vector3(scale , scale, scale );
     }
 
    
