@@ -48,27 +48,30 @@ public class OLAPCube : MonoBehaviour
     void UpdateAxis(){
 	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
 	List<string> xMember = requests.listMembersOfLevel( xAxisMap, xLevel );
-	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMember);
 
 
 	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
 	List<string> yMember = requests.listMembersOfLevel( yAxisMap, yLevel );
 
-	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMember);
-
 
 	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
 	List<string> zMember = requests.listMembersOfLevel( zAxisMap, zLevel );
-	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMember);
-	
-	int maxDescr = Mathf.Max(Mathf.Max(xMember.Count, yMember.Count), zMember.Count);
-	float maxDim = (maxDescr+3) * 1.1f;
 
+	int maxDescr = Mathf.Max(Mathf.Max(xMember.Count, yMember.Count), zMember.Count);
+
+	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMember, maxDescr);
+	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMember, maxDescr);
+	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMember, maxDescr);
+	
+	float maxDim = (maxDescr+3) * 1.1f;
 	float scale = maxDim/6;
 	
 	// center & scale chartholder
-	chartHolder.transform.position = new Vector3(0 , -maxDim/2, maxDim/2 );
+	chartHolder.transform.localPosition = new Vector3(0 , -maxDim/2, maxDim/2 );
 	chartHolder.transform.localScale = new Vector3(scale , scale, scale );
+	
+	
+	
     }
 
    
