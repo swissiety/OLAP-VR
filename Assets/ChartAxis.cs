@@ -57,7 +57,6 @@ public class ChartAxis : MonoBehaviour
         // TODO: adjust holder position -> max preferredWidth <-> avoid text overlap with axis 
 
 	int y = 0;
-	float maxpWidth = 0;
 	foreach( string cellDescrStr in cellDescriptions ){
 		// Instantiate at position, rotation
 		axisDescr[y] = Instantiate(myPrefab, descrHolder, false);
@@ -73,25 +72,24 @@ public class ChartAxis : MonoBehaviour
 		
 		TMP_Text[] descrText = axisDescr[y].GetComponentsInChildren<TMP_Text>();
 		descrText[0].SetText(cellDescrStr);
+		if(axisType != 2 ){
+			descrText[0].alignment = TextAlignmentOptions.TopRight;
+		}
 		
-		maxpWidth = Mathf.Max(descrText[0].preferredWidth, maxpWidth);
 		y++;
 	}
 	
-	
-	Debug.Log("maxpw "+maxpWidth);
-	Debug.Log("maxDim "+maxDimension);
 	
 	for( int i = 0; i < axisDescr.GetLength(0); i++){
 		Vector3 translateV;
 		
 		if(axisType == 0 ){
 			// x
-			translateV = new Vector3(2-maxpWidth, i*1.1f-height, -maxDimension/2);			
+			translateV = new Vector3(-4-maxDimension*1.1f , i*1.1f-height/2, 0);			
 		}else if( axisType == 1 ){
-			translateV = new Vector3(2-maxpWidth, i*1.1f-height/2, 0 );
+			translateV = new Vector3(-maxDimension*1.1f/2, i*1.1f-height, 0 );
 		}else{
-			translateV = new Vector3( 2+ maxDimension/2 , i*1.1f-height, 0);
+			translateV = new Vector3( 2+ maxDimension*1.1f/2 , i*1.1f-height/2, 0);
 		}
 
 		axisDescr[i].transform.position = descrHolder.position + descrHolder.rotation * translateV;
