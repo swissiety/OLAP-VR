@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CellCube : MonoBehaviour
+public class CellDescr : MonoBehaviour
 {
+
     Renderer m_Renderer;
 
     void Start()
@@ -26,17 +27,17 @@ public class CellCube : MonoBehaviour
     
     void OnMouseDown()
     {
-	Debug.Log("cell down");
+	Debug.Log("celldescr down");
     }
     
        void OnMouseUp()
     {
-	Debug.Log("cell up");
+	Debug.Log("celldescr up");
     }
     
     void OnMouseUpAsButton(){
     
-    Debug.Log("OnMouseupasButton");
+    	Debug.Log("cell descr  OnMouseupasButton");
     }
 
 }

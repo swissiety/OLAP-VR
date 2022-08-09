@@ -27,7 +27,6 @@ public class OLAPCube : MonoBehaviour
 	private GameObject[,,] grid = new GameObject[0,0,0];
 	
 	
-
     // Start is called before the first frame update
     void OnEnable()
     {	
@@ -46,57 +45,78 @@ public class OLAPCube : MonoBehaviour
         
     
     void UpdateAxis(){
-	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
 	List<string> xMember = requests.listMembersOfLevel( xAxisMap, xLevel );
-
-
-	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
 	List<string> yMember = requests.listMembersOfLevel( yAxisMap, yLevel );
-
-
-	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
 	List<string> zMember = requests.listMembersOfLevel( zAxisMap, zLevel );
 
 	int maxDescr = Mathf.Max(Mathf.Max(xMember.Count, yMember.Count), zMember.Count);
 
+	ChartAxis xaxisScript = (ChartAxis) axis[0].GetComponent(typeof(ChartAxis));
 	xaxisScript.UpdateAxis( requests.getDimensionTitle(xAxisMap), xMember, maxDescr);
+	
+	ChartAxis yaxisScript = (ChartAxis) axis[1].GetComponent(typeof(ChartAxis));
 	yaxisScript.UpdateAxis(  requests.getDimensionTitle(yAxisMap), yMember, maxDescr);
+	
+	ChartAxis zaxisScript = (ChartAxis) axis[2].GetComponent(typeof(ChartAxis));
 	zaxisScript.UpdateAxis(  requests.getDimensionTitle(zAxisMap), zMember, maxDescr);
 	
 	float maxDim = (maxDescr+3) * 1.1f;
 	float scale = maxDim/6;
 	
 	// center & scale chartholder
-	chartHolder.transform.localPosition = new Vector3(0 , -maxDim/2, maxDim/2 );
+	chartHolder.transform.localPosition = new Vector3(-maxDim/4 , -maxDim/2, maxDim/2 );
 	chartHolder.transform.localScale = new Vector3(scale , scale, scale );
-	
-	
 	
     }
 
-   
-    void AxisOnClick(GameObject axis, int axisDimension, ref int axisLevel ){
+ 
     
-    	Debug.Log( axis.name +" clicked");
-    	if(axisLevel > 0){
-	    	Debug.Log( "zoom out.");
-    		axisLevel--;
-    		UpdateAxis();
+    
+    public void zoomIn( int axis){
+    	
+    	if(axis == 0){
+    		xLevel = Mathf.Max(xLevel+1, schema.dimensions[ xAxisMap ].hierarchy[0].levels.Count-1 ) ;
+    	}else if( axis == 1){
+    		yLevel = Mathf.Max(xLevel+1, schema.dimensions[ yAxisMap ].hierarchy[0].levels.Count-1 ) ;
+    	}else{
+		zLevel = Mathf.Max(xLevel+1, schema.dimensions[ zAxisMap ].hierarchy[0].levels.Count-1 ) ;    	
     	}
+    	
+     	Debug.Log( "zoom in.");
+    	UpdateAxis();
+    	
+    }
+
+
+    public void zoomOut( int axis){
+   
+    	if(axis == 0){
+    		xLevel = Mathf.Min(xLevel-1, 0 ) ;
+    	}else if( axis == 1){
+    		yLevel = Mathf.Min(yLevel-1, 0 ); 
+    	}else{
+		zLevel = Mathf.Min(zLevel-1, 0 );    	
+    	}
+    	Debug.Log( "zoom out.");
+	UpdateAxis();
+
     }
     
-    
-    public void CreateCube( int xH, int yH, int zH ){
-	
+        
+        
+    void OnDisable(){
 	// cleanup possibly existing elements
 	for(int cx = 0; cx < grid.GetLength(0); cx++) {
          for(int cy = 0; cy < grid.GetLength(1); cy++) {
             for(int cz = 0; cz < grid.GetLength(2); cz++) {
-                Destroy(grid[cx,cy,cz]);
+            	Destroy(grid[cx,cy,cz]);
             }
          }
         }
-        
+    }
+    
+    public void CreateCube( int xH, int yH, int zH ){
+	
         grid = new GameObject[xH,yH,zH];
 	
     	float xHeight = (xH-1)*1.1f/2;
@@ -132,7 +152,7 @@ public class OLAPCube : MonoBehaviour
     private Vector2 currentSwipe;
     private Vector3 previousMousePosition;
     private Vector3 mouseDelta;
-    private float speed = 400f;
+    private float speed = 200f;
     public GameObject target;  
     bool dragRotate = false;  
 
@@ -142,9 +162,6 @@ public class OLAPCube : MonoBehaviour
     void Update()
     {        
     
-
-
-        
         
         // Axis' Stuff
 	if(Input.GetMouseButtonDown(0)){
@@ -153,17 +170,8 @@ public class OLAPCube : MonoBehaviour
 	      
 	      if(Physics.Raycast(ray,out hit)){
 		   if(hit.collider.gameObject == axis[0]){
-		        //hit.collider.gameObject now refers to the 
-		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[0], xAxisMap, ref xLevel);
-		   }else            if(hit.collider.gameObject == axis[1]){
-		        //hit.collider.gameObject now refers to the 
-		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[1], yAxisMap, ref yLevel);
-		   } else            if(hit.collider.gameObject == axis[2]){
-		        //hit.collider.gameObject now refers to the 
-		        //cube under the mouse cursor if present
-		        AxisOnClick(axis[2], zAxisMap, ref zLevel);
+		   }else if(hit.collider.gameObject == axis[1]){
+		   } else if(hit.collider.gameObject == axis[2]){
 		   }else{
 		   	firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 		   	dragRotate = true;

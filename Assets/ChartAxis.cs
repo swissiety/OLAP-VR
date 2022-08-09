@@ -7,9 +7,10 @@ using TMPro;
 public class ChartAxis : MonoBehaviour
 {
 
+	public GameObject olapcube;
 	public GameObject myPrefab; 
 	 GameObject[] axisDescr; 
-	 int axisType = 0;
+	 private int axisType = 0;
 
     // Start is called before the first frame update
     void Awake()
@@ -17,12 +18,68 @@ public class ChartAxis : MonoBehaviour
 	axisDescr = new GameObject[0];
 	axisType = name[0]-'x';
     }
+    
+    Renderer m_Renderer;
+    void Start()
+    {
+        //Fetch the Renderer component of the GameObject
+        m_Renderer = GetComponent<Renderer>();
+	oldColor = m_Renderer.material.color; 
+    }
+
+
+
+	private float temps;
+	private bool click;
+	private bool longClickDone = false;
 
     // Update is called once per frame
     void Update()
     {
-	
+ 	    if ( click && !longClickDone && (Time.time - temps) > 0.3 ) {
+		// long click effect
+		longClickDone = true;
+	       //  Debug.Log("longclick effect");
+	        m_Renderer.material.color = new Color(0.446f, 0.099f, 0.206f, 1.000f); 
+	   }
     }
+    
+    Color oldColor;
+    void OnMouseDown(){
+   		temps = Time.time ;
+		click = true ;
+		longClickDone = false ;
+		   
+	       // Debug.Log("clickdown");
+	       // make brighter
+	        m_Renderer.material.color = new Color(0.246f, 0.059f, 0.106f, 1.000f);
+    }
+    
+    void OnMouseUp(){
+	  click = false ;
+	   m_Renderer.material.color = oldColor;
+	       if ( (Time.time - temps) < 0.3 ){
+		    // short click 
+		    OnShortClick();
+	    }else{
+	    	// long click
+		    OnLongClick();
+	    }
+    }
+    
+	
+    void OnLongClick(){
+	Debug.Log("longclick "+name );
+	OLAPCube cubescript = (OLAPCube) olapcube.GetComponent(typeof(OLAPCube));
+	cubescript.zoomOut( axisType );
+    }    
+
+    void OnShortClick(){	
+	Debug.Log("shortclick "+name );
+	OLAPCube cubescript = (OLAPCube) olapcube.GetComponent(typeof(OLAPCube));
+	cubescript.zoomIn( axisType );
+    }    
+
 
 
     public void UpdateAxis(string title, List<string> cellDescriptions, int maxDimension){
@@ -67,7 +124,6 @@ public class ChartAxis : MonoBehaviour
 		axisDescr[y].transform.localScale = new Vector3(0.5f, 0.05f, 0.25f );
 		// axisDescr[y].transform.position = descrHolder.position + descrHolder.rotation * new Vector3(2.2f, y*1.1f-height, 0 );
 		axisDescr[y].transform.rotation = descrHolder.rotation;
-		
 		axisDescr[y].name = "descr_"+cellDescrStr;
 		
 		TMP_Text[] descrText = axisDescr[y].GetComponentsInChildren<TMP_Text>();
@@ -75,7 +131,7 @@ public class ChartAxis : MonoBehaviour
 		if(axisType != 2 ){
 			descrText[0].alignment = TextAlignmentOptions.TopRight;
 		}
-		
+				
 		y++;
 	}
 	
@@ -98,4 +154,9 @@ public class ChartAxis : MonoBehaviour
 	
 
      }
+     
+     
+     
+
+     
 }

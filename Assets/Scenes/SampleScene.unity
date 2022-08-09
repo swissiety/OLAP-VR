@@ -1883,6 +1883,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2a77dbfdd7f45d5fb2e549b54a3d0d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  olapcube: {fileID: 66798826}
   myPrefab: {fileID: 6708114597831441445, guid: 29180cef74c7d261b8606caed7a46c4d, type: 3}
 --- !u!1 &462963835
 GameObject:
@@ -5257,6 +5258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2a77dbfdd7f45d5fb2e549b54a3d0d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  olapcube: {fileID: 66798826}
   myPrefab: {fileID: 6708114597831441445, guid: 29180cef74c7d261b8606caed7a46c4d, type: 3}
 --- !u!1 &879554388
 GameObject:
@@ -6316,7 +6318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1031121383
 Transform:
   m_ObjectHideFlags: 0
@@ -8534,6 +8536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2a77dbfdd7f45d5fb2e549b54a3d0d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  olapcube: {fileID: 66798826}
   myPrefab: {fileID: 6708114597831441445, guid: 29180cef74c7d261b8606caed7a46c4d, type: 3}
 --- !u!1 &1584117888
 GameObject:
