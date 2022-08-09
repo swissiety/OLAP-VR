@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,14 +50,18 @@ public class ConfigurationScene : MonoBehaviour
 	}
 
 
-	void TaskOnClick(){
+	async void TaskOnClick(){
 		
 		if( string.IsNullOrEmpty(ip.text.ToString()) || string.IsNullOrEmpty(port.text.ToString()) ){
 			Toast.Show ("Invalid connection configuration.");
 			return;
 		}
 		
-		bool successful = requests.tryConnect(ip.text.ToString(), Int32.Parse(port.text.ToString()));
+		
+		switcher.showLoadingScene(true);
+		bool successful = await Task.Run( () => { return requests.tryConnect(ip.text.ToString(), Int32.Parse(port.text.ToString()));} );
+		switcher.showLoadingScene(false);
+		
 		// TODO: enable/disable connect button
 		//connectButton.interactable = successful;
 		

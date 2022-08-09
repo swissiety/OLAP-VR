@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using EasyUI.Toast;
 
-
-// TODO: OnEnable? Start is only called once -> multiple "window" accesses w/different connections will fail..
 
 public class CubeChooseScene : MonoBehaviour
 {
@@ -16,12 +15,13 @@ public class CubeChooseScene : MonoBehaviour
  	public TMP_Dropdown dropdown;
  	public RequestMgr requests;
 	
-	void OnEnable(){
+	async void OnEnable(){
 
-	    	// indicate loading: loader + dropdown.SetActive( false );
-	    	OLAPSchema schema = requests.getSchema();
-	    	
-	    
+	    	// indicate loading
+		switcher.showLoadingScene(true);
+	    	OLAPSchema schema = await Task.Run( () => { return requests.getSchema(); });
+	    	switcher.showLoadingScene(false);
+	    	    		    	
 	    	if( schema == null || schema.cubes.Count <= 0 ){
 	    		Toast.Show("Loading OLAPSChema/Cube Data failed.", 5.0f);
     			Debug.Log("cube loading failed");
@@ -41,11 +41,9 @@ public class CubeChooseScene : MonoBehaviour
 	    	    	OnSelect();
 	    	}
 	    	
-	    	    	
+	    	Debug.Log("CubechooseScene 6");
 		// FIXME: remove in production
 		 StartCoroutine(AutoSelect());
-		
-
     }
     
     void OnDisable(){

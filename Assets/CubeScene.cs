@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using EasyUI.Toast;
+using System.Threading.Tasks;
 
 
 public class CubeScene : MonoBehaviour
@@ -10,11 +11,9 @@ public class CubeScene : MonoBehaviour
 	public RequestMgr requests;
 	
 	
-	
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
-    
     }
 
     // Update is called once per frame
@@ -22,7 +21,5 @@ public class CubeScene : MonoBehaviour
     {
         
     }
-    
-    
-    // switcher.switchTo(1);
+   
 }

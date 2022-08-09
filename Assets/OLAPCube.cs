@@ -1,19 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
+using EasyUI.Toast;
+
 
 public class OLAPCube : MonoBehaviour
 {
 	public RequestMgr requests;
+	public SceneSwitcher switcher;
+	
 	
 	public GameObject chartHolder;
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
      	public GameObject[] axis;
      
-     	public OLAPSchema schema; 	
-
 	// FIXME: incorporate rotating/pivoting the levels as well! 
      	int xLevel = 0;
      	int yLevel = 0;
@@ -28,16 +31,23 @@ public class OLAPCube : MonoBehaviour
 	
 	
     // Start is called before the first frame update
-    void OnEnable()
+    async void OnEnable()
     {	
     	// init
     	xAxisMap = requests.x;
     	yAxisMap = requests.y;
     	zAxisMap = requests.z;
     		
-	CreateCube(requests.listMembersOfLevel( xAxisMap, xLevel ).Count,
-				requests.listMembersOfLevel( yAxisMap, yLevel ).Count,
-				requests.listMembersOfLevel( zAxisMap, zLevel ).Count );
+    	switcher.showLoadingScene(true);	
+	    		
+    	var xMember =  await Task.Run( () => { return requests.listMembersOfLevel( xAxisMap, xLevel ); });
+    	
+    	var yMember =  await Task.Run( () => { return requests.listMembersOfLevel( yAxisMap, yLevel ); });
+    	var zMember =   await Task.Run( () => { return requests.listMembersOfLevel( zAxisMap, zLevel ); });
+    	
+    	switcher.showLoadingScene(false);
+    	        		
+	CreateCube(xMember.Count, yMember.Count, zMember.Count );
 	    
     	// TODO: make axis drawn text clickable if there is more hierarchy
     		     
@@ -74,12 +84,34 @@ public class OLAPCube : MonoBehaviour
     
     public void zoomIn( int axis){
     	
+    	OLAPSchema schema = requests.getSchema();
     	if(axis == 0){
-    		xLevel = Mathf.Max(xLevel+1, schema.dimensions[ xAxisMap ].hierarchy[0].levels.Count-1 ) ;
+    		if(xLevel <  schema.dimensions[ xAxisMap ].hierarchy[0].levels.Count-1){
+    			xLevel++;
+    			Debug.Log( "x zoom out.");
+			UpdateAxis();
+    		}else{
+    			Toast.Show("I guess x doesn't DrillDown anymore.", 1f);
+    		}
+   	   		
     	}else if( axis == 1){
-    		yLevel = Mathf.Max(xLevel+1, schema.dimensions[ yAxisMap ].hierarchy[0].levels.Count-1 ) ;
+    	  	if(yLevel <  schema.dimensions[ yAxisMap ].hierarchy[0].levels.Count-1){
+    			yLevel++;
+    			Debug.Log( "x zoom out.");
+			UpdateAxis();
+    		}else{
+    			Toast.Show("I guess y doesn't DrillDown anymore.", 1f);
+    		}
+    		
     	}else{
-		zLevel = Mathf.Max(xLevel+1, schema.dimensions[ zAxisMap ].hierarchy[0].levels.Count-1 ) ;    	
+    	    	 if(zLevel <  schema.dimensions[ zAxisMap ].hierarchy[0].levels.Count-1){
+    			zLevel++;
+    			Debug.Log( "x zoom out.");
+			UpdateAxis();
+    		}else{
+    			Toast.Show("I guess z doesn't DrillDown anymore.", 1f);
+    		}
+    		    	
     	}
     	
      	Debug.Log( "zoom in.");
@@ -91,14 +123,33 @@ public class OLAPCube : MonoBehaviour
     public void zoomOut( int axis){
    
     	if(axis == 0){
-    		xLevel = Mathf.Min(xLevel-1, 0 ) ;
+    		if(xLevel > 0){
+    			xLevel--;
+    			Debug.Log( "x zoom out.");
+			UpdateAxis();
+    		}else{
+    			Toast.Show("I guess x doesn't RollUp anymore.", 1f);
+    		}
+    		
     	}else if( axis == 1){
-    		yLevel = Mathf.Min(yLevel-1, 0 ); 
+    		if(yLevel > 0){
+    			yLevel--;
+    			Debug.Log( "y zoom out.");
+			UpdateAxis();
+
+    		}else{
+    			Toast.Show("I guess y doesn't RollUp anymore.", 1f);    			
+    		} 
     	}else{
-		zLevel = Mathf.Min(zLevel-1, 0 );    	
+    		if(zLevel > 0){
+    			zLevel--;
+    			Debug.Log( "z zoom out.");
+			UpdateAxis();
+
+    		}else{
+    			Toast.Show("I guess z doesn't RollUp anymore.", 1f);
+    		}    	
     	}
-    	Debug.Log( "zoom out.");
-	UpdateAxis();
 
     }
     
@@ -254,8 +305,8 @@ public class OLAPCube : MonoBehaviour
 		    {
 		        target.transform.Rotate(0, 0, -90, Space.World);
 		    	Debug.Log("upRight");
-		        Swap(ref xAxisMap, ref yAxisMap);
-		        Swap(ref xLevel, ref yLevel);
+		        Swap(ref yAxisMap, ref zAxisMap);
+		        Swap(ref yLevel, ref zLevel);
 		        UpdateAxis();
 		    }
 		    else if (DownLeftSwipe(currentSwipe))

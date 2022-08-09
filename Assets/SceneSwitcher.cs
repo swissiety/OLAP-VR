@@ -9,7 +9,7 @@ public class SceneSwitcher : MonoBehaviour
 	public GameObject rotatingCube; 
 	
 	public GameObject loadingScene; 
-
+	bool loading = false;
 
 	int currentSceneIdx = 0;
 	
@@ -24,10 +24,13 @@ public class SceneSwitcher : MonoBehaviour
     }
     
     
-    public void setLoadingScene(bool flag){
-    	loadingScene.SetActive(flag);
-    	
-    	// possibility to abort on screen?
+    public void showLoadingScene(bool flag){
+	
+	loadingScene.SetActive(flag);
+//	var render = scenes[currentSceneIdx].GetComponentInChildren<MeshRenderer>(); 	render.enabled = false;
+ 
+	loading = flag;
+    	// add possibility to abort on loading screen?
     	
     }
     

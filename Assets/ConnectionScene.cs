@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -16,10 +17,13 @@ public class ConnectionScene : MonoBehaviour
  	public TMP_Dropdown dropdown;
  	public RequestMgr requests;
 	
-	void OnEnable(){
+	async void OnEnable(){
 		
 	    	// indicate loading: loader + dropdown.SetActive( false );
-	    	 Dictionary < string, string > connections = requests.listConnections();
+	    	
+	    	switcher.showLoadingScene(true);
+	    	 Dictionary < string, string > connections = await Task.Run( () => { return requests.listConnections(); });
+	    	switcher.showLoadingScene(false);
 	    	
 	    	if( connections == null || connections.Count <= 0 ){
 	    		Toast.Show("Loading connections failed.", 5.0f);

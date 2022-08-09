@@ -89,6 +89,7 @@ public class RequestMgr : MonoBehaviour
    
    	public List<string> listMembersOfLevel( int dimension, int levelIdx ){
    		loadSchema();
+   		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
    		Debug.Log( "retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
    		// FIXME incorporate   		
    		

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -17,7 +18,7 @@ public class DimensionScene : MonoBehaviour
  
  
     // Start is called before the first frame update
-    void Start()
+    async void OnEnable()
     {
     
     	// title	
@@ -26,11 +27,12 @@ public class DimensionScene : MonoBehaviour
         chooseButton.onClick.AddListener(TaskOnClick);
 
 	// load and add data
-	requests.loadSchema();
-	
+	switcher.showLoadingScene(true);
+	List<Dimension> list = await Task.Run( () => { return requests.listDimensions();});
+	switcher.showLoadingScene(false);
 	
 	// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..
-	List<Dimension> list = requests.listDimensions();
+
 	dropdowns[ 0 ].options.Clear ();
 	dropdowns[ 1 ].options.Clear ();
 	dropdowns[ 2 ].options.Clear ();
