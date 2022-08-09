@@ -11,7 +11,7 @@ public class ChartAxis : MonoBehaviour
 	 GameObject[] axisDescr; 
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
 	axisDescr = new GameObject[0];
     }
@@ -48,20 +48,24 @@ public class ChartAxis : MonoBehaviour
         {
             if(string.Equals(child.name, "cellDescrHolder")){
 		descrHolder = child;
-		Debug.Log("descr holder found");
+		break;
             }
         }
         
-        // adjust holder -> max UI.LayoutElement.preferredWidth 
+        // TODO: adjust holder position -> max preferredWidth <-> avoid text overlap with axis 
 
-		
 	int y = 0;
 	foreach( string cellDescrStr in cellDescriptions ){
 		// Instantiate at position, rotation
-		axisDescr[y] = Instantiate(myPrefab, descrHolder);
+		axisDescr[y] = Instantiate(myPrefab, descrHolder, false);
 		//cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
-//		axisDescr[y].transform.SetParent(descrHolder);
-		axisDescr[y].transform.position = new Vector3(0.2f, y*1.1f-height, -2 );
+		// 
+		
+		axisDescr[y].transform.forward = descrHolder.forward;
+		axisDescr[y].transform.localScale = new Vector3(0.05f, 0.5f, 0.25f );
+		axisDescr[y].transform.Translate( new Vector3(0.2f, y*1.1f-height, -2 ));
+		axisDescr[y].transform.rotation = descrHolder.rotation;
+		
 		axisDescr[y].name = "descr_"+cellDescrStr;
 		
 		TMP_Text[] descrText = axisDescr[y].GetComponentsInChildren<TMP_Text>();

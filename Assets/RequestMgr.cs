@@ -99,9 +99,9 @@ public class RequestMgr : MonoBehaviour
    		
    		
    		// FIXME: query real members!
-   		if( dimension == 0){
+   		if( dimension == 4){
    			membersOfLevelCache[ key ] = new List<string>(){"bla", "bli", "blupp"}; 
-   		}else if(dimension == 3 ) {
+   		}else if(dimension == 0 ) {
 	   		membersOfLevelCache[ key ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
    		}else{
    			membersOfLevelCache[ key ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};

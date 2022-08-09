@@ -55,8 +55,8 @@ public class DimensionScene : MonoBehaviour
 	yield return new WaitForSeconds(0.6f);
      	// FIXME: remove in production!
 	dropdowns[0].value = 0;
-	dropdowns[1].value = 3;	
-	dropdowns[2].value = 4;
+	dropdowns[1].value = 4;	
+	dropdowns[2].value = 3;
 	TaskOnClick();
 	
     }

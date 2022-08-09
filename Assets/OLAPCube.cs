@@ -84,7 +84,6 @@ public class OLAPCube : MonoBehaviour
     
     
     public void CreateCube( int xH, int yH, int zH ){
-  	myPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);    	
 	
 	// cleanup possibly existing elements
 	for(int cx = 0; cx < grid.GetLength(0); cx++) {
@@ -96,7 +95,7 @@ public class OLAPCube : MonoBehaviour
         }
         
         grid = new GameObject[xH,yH,zH];
-
+	
     	float xHeight = (xH-1)*1.1f/2;
     	float yHeight = (yH-1)*1.1f/2;
     	float zHeight = (zH-1)*1.1f/2;
@@ -110,7 +109,7 @@ public class OLAPCube : MonoBehaviour
 				// Instantiate at position, rotation.
 				GameObject cube = Instantiate(myPrefab, new Vector3(x*1.1f-xHeight, y*1.1f-yHeight, z*1.1f-zHeight), Quaternion.identity);
 				 
-				cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
+				cube.GetComponent<Renderer>().material.color = new Color(0.246f, 0.059f, 0.106f, 1.000f);
 				cube.transform.SetParent(transform);
  
 				cube.name = "cell_"+x +"_"+ y +"_"+ z;
@@ -120,9 +119,7 @@ public class OLAPCube : MonoBehaviour
 	}
 	
 	UpdateAxis();
-        
-        
-        myPrefab.SetActive(false);   
+       
     }
     
     
@@ -222,42 +219,48 @@ public class OLAPCube : MonoBehaviour
 		    {
 		        target.transform.Rotate(0, 90, 0, Space.World);
 		        Debug.Log("left");
-		        SwapDimension(ref xAxisMap,ref  zAxisMap);
+		        Swap(ref xAxisMap,ref  zAxisMap);
+		        Swap(ref xLevel, ref zLevel);
 		        UpdateAxis();
 		    }
 		    else if (RightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(0, -90, 0, Space.World);
 		    	Debug.Log("right");
-		        SwapDimension(ref xAxisMap,ref  zAxisMap);
+		        Swap(ref xAxisMap,ref  zAxisMap);
+		        Swap(ref xLevel, ref zLevel);
 		        UpdateAxis();
 		    }
 		    else if (UpLeftSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(90, 0, 0, Space.World);
 		    	Debug.Log("upLeft");
-		        SwapDimension(ref yAxisMap, ref zAxisMap);
+		        Swap(ref yAxisMap, ref zAxisMap);
+		        Swap(ref yLevel, ref zLevel);
 		        UpdateAxis();
 		    }
 		    else if (UpRightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(0, 0, -90, Space.World);
 		    	Debug.Log("upRight");
-		        SwapDimension(ref xAxisMap, ref yAxisMap);
+		        Swap(ref xAxisMap, ref yAxisMap);
+		        Swap(ref xLevel, ref yLevel);
 		        UpdateAxis();
 		    }
 		    else if (DownLeftSwipe(currentSwipe))
 		    {
 		     	 target.transform.Rotate(0, 0, 90, Space.World);
 		    	Debug.Log("downLeft");
-		        SwapDimension(ref yAxisMap, ref zAxisMap);
+		        Swap(ref yAxisMap, ref zAxisMap);
+		        Swap(ref yLevel, ref zLevel);
 		        UpdateAxis();
 		    }
 		    else if (DownRightSwipe(currentSwipe))
 		    {
 		        target.transform.Rotate(-90, 0, 0, Space.World);
 		    	Debug.Log("downRight");
-		        SwapDimension(ref xAxisMap, ref yAxisMap);
+		        Swap(ref xAxisMap, ref yAxisMap);
+		        Swap(ref xLevel, ref yLevel);
      			UpdateAxis();
 		    }
 	      }else{
@@ -299,7 +302,7 @@ public class OLAPCube : MonoBehaviour
     }   
     
     
-    static void SwapDimension<T>(ref T x, ref T y)
+    static void Swap<T>(ref T x, ref T y)
 {
      T t = y;
      y = x;
