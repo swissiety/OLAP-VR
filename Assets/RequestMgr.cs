@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Net;
+using System.Threading.Tasks;
 using System;
 using System.Net.Sockets;
 using System.Xml.Serialization;
@@ -10,20 +11,40 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Text;
 
 public class RequestMgr : MonoBehaviour
 {
 
-	OLAPSchema Schema;
-	public string Cube;
-	
 	string host = "";
 	int port = 8080;
 	string connectionName = "";
+	// chosen cube of connection
+	public string cube;
+	// chosen dimensions
 	public int x = -1;
 	public int y = -1;
 	public int z = -1;
+
+	// 
+	OLAPSchema Schema;
+
 	
+	public CubeState getCubeState(){
+		CubeState c = new CubeState();
+		c.x = new AxisState();
+		c.x.dimension = x;
+		c.y = new AxisState();
+		c.y.dimension = y;
+		c.z = new AxisState();
+		c.z.dimension = z;
+		return c;
+	}
+	
+	
+	public void SetCube(string cubename){
+		this.cube =cubename;
+	}
 	
 	public void setServerConnection(string ip, int port){
 		this.host = ip;
@@ -35,19 +56,12 @@ public class RequestMgr : MonoBehaviour
 		return "http://"+host+":"+port+"/";
 	}
 	
-	public void setCube(string name){
-		this.Cube = name;
-	}
-	
-	public string getCube(){
-		return Cube;
-	}
+
 		
 	public OLAPSchema getSchema(){
 		loadSchema();
 		return Schema;
 	}
-	
 	
 	
 	public void setConnection(string name){
@@ -58,10 +72,31 @@ public class RequestMgr : MonoBehaviour
 		return connectionName;
 	}
 	
-	public void setDimensions(int x, int y, int z){
+	public IEnumerator loadDimensions(int x, int y, int z, Action action){
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		
+		string url = buildBaseUrl()+"query";
+		string query = "{ \"connectionName\" : \"foodmart\", \"query\" : \"select { [Measures].MEMBERS } on columns from Warehouse\"}";
+		var webRequest = CreatePostRequest( url, query);
+   		       	
+   		 yield return webRequest.SendWebRequest();
+   		
+//   		var data = JsonUtility.FromJson<Todo>(webRequest.downloadHandler.text);
+
+   		
+   		Debug.Log( webRequest.downloadHandler.text );
+   		
+   		// FIXME: set maxLevel of AxisState
+   		
+   		
+   		// FIXME: query real members!
+   		membersOfLevelCache[ Schema.dimensions[ 0 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"bla", "bli", "blupp"}; 
+	   	membersOfLevelCache[ Schema.dimensions[ 4 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
+   		membersOfLevelCache[ Schema.dimensions[ 3 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
+   		
+   		action();
 	}
 	
 	
@@ -83,84 +118,69 @@ public class RequestMgr : MonoBehaviour
 		  }
     		return true;
     	}
+   
     
     
     	Dictionary<string, List<string>> membersOfLevelCache = new Dictionary<string, List<string>>();
-   
-   	public List<string> listMembersOfLevel( int dimension, int levelIdx ){
+   	public List<string> listMembersOfLevel( AxisState axis ){
    		loadSchema();
+   		int dimension = axis.dimension;
+   		int levelIdx = axis.level; 
+   		
    		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
-   		Debug.Log( "retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
+   		Debug.Log("retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
    		// FIXME incorporate   		
    		
    		string key = Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName;
    		if( membersOfLevelCache.ContainsKey( key) ){
    			return membersOfLevelCache[ key ];
    		}
+   		Debug.Log("Error could not listMembersOfLevel! ["+ dimension + "] "+ levelIdx );   		
    		
-   		
-   		// FIXME: query real members!
-   		if( dimension == 4){
-   			membersOfLevelCache[ key ] = new List<string>(){"bla", "bli", "blupp"}; 
-   		}else if(dimension == 0 ) {
-	   		membersOfLevelCache[ key ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
-   		}else{
-   			membersOfLevelCache[ key ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
-   		}
-   		
-   		return membersOfLevelCache[ key ];
+   		//return membersOfLevelCache[ key ];
+   		return new List<string>();
    	}
    	
    	public string getDimensionTitle( int dimension ){
    		loadSchema();
-   		Debug.Log( "dimension title: "+ Schema.dimensions[ dimension ].dimensionName );
    		return Schema.dimensions[ dimension ].dimensionName;
    	}
    
    
     
-      IEnumerator GetRequest(string url, Action<UnityWebRequest> callback)
+      UnityWebRequest CreateGetRequest(string url)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        var request = new UnityWebRequest(url, "GET");
+        request.downloadHandler = new DownloadHandlerBuffer();
+        return request;
+    }
+    
+    
+    UnityWebRequest CreatePostRequest(string url, string dataRaw )
+    {
+       
+        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
         {
-            // Send the request and wait for a response
-            yield return webRequest.SendWebRequest();
-            
-            
-            string[] pages = url.Split('/');
-            int page = pages.Length - 1;
-
-            switch (webRequest.result)
-            {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.Success:
-                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
-                    callback(webRequest);
-                    break;
-            }
-            
+        
+        	request.SetRequestHeader("Content-Type", "application/json");
+        	request.downloadHandler = new DownloadHandlerBuffer();
+		request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(dataRaw));
+       	return request;      
         }
     }
     
-		
-	public Dictionary < string, string > listConnections()
-	{   
+
+    
+	
+	public IEnumerator loadCubeConnections( Action<Dictionary < string, string > > callback){
 		string URLString = buildBaseUrl()+"getConnections";
 		Debug.Log("load schema: "+ URLString); 
 
-		// var webrequest = GetRequest( URLString );
+		UnityWebRequest webrequest = CreateGetRequest( URLString );
 		
 		
-		// FIXME: get json data from the server! 
-
-		
-		string jsonstr = "{\n  \"test\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:test\",\n    \"Description\" : \"Main version of test connection\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes!/test.xml\"\n  },\n  \"foodmart\" : {\n    \"JdbcDriver\" : \"org.hsqldb.jdbc.JDBCDriver\",\n    \"Jdbc\" : \"jdbc:hsqldb:res:foodmart;set schema \\\"foodmart\\\"\",\n    \"Description\" : \"Pentaho/Hyde FoodMart Database\",\n    \"ConnectionDefinitionSource\" : \"jar:file:/home/smarkus/IdeaProjects/mondrian-rest/target/mondrian-rest-executable.war!/WEB-INF/classes/mondrian-connections.json\",\n    \"IsDemo\" : true,\n    \"JdbcDriverClass\" : false,\n    \"MondrianSchemaUrl\" : \"https://raw.githubusercontent.com/pentaho/mondrian/master/demo/FoodMart.xml\"\n  }\n}";
+		yield return webrequest.SendWebRequest();
+		string jsonstr = webrequest.downloadHandler.text;
 		
 		var values = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string,string>>>(jsonstr);
 		
@@ -174,7 +194,7 @@ public class RequestMgr : MonoBehaviour
 		}
 
 //		connections.Add("foodmart", "Example Dataset" );
-		return connections;
+		callback( connections);
 	}
 
 
@@ -218,7 +238,6 @@ serializer.UnreferencedObject +=
 			Debug.Log("schema loaded for "+ URLString); 
 			return true;
 		}
-		
         }
         
         public List<Dimension> listDimensions(){
@@ -226,35 +245,6 @@ serializer.UnreferencedObject +=
 	        return Schema.dimensions;
         }
         
-        
-    IEnumerator GetRequest(string uri)
-    {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
-        {
-            // Request and wait for the desired page.
-            yield return webRequest.SendWebRequest();
-
-            string[] pages = uri.Split('/');
-            int page = pages.Length - 1;
-
-            switch (webRequest.result)
-            {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.Success:
-                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
-                    break;
-            }
-        }
-    }
-    
-    
-
 
 
 }

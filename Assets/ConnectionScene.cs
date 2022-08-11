@@ -22,8 +22,13 @@ public class ConnectionScene : MonoBehaviour
 	    	// indicate loading: loader + dropdown.SetActive( false );
 	    	
 	    	switcher.showLoadingScene(true);
-	    	 Dictionary < string, string > connections = await Task.Run( () => { return requests.listConnections(); });
-	    	switcher.showLoadingScene(false);
+	    	
+	    	StartCoroutine(requests.loadCubeConnections(( Dictionary< string, string > d) => OnLoaded(d) ));
+	    	
+    }
+    
+    public void OnLoaded( Dictionary< string, string > connections ){
+    	    	switcher.showLoadingScene(false);
 	    	
 	    	if( connections == null || connections.Count <= 0 ){
 	    		Toast.Show("Loading connections failed.", 5.0f);
@@ -49,6 +54,7 @@ public class ConnectionScene : MonoBehaviour
 		StartCoroutine(AutoSelect());
 
     }
+    
     
     void OnDisable(){
          StopCoroutine("AutoSelect");
@@ -80,6 +86,7 @@ public class ConnectionScene : MonoBehaviour
 	Debug.Log(cname + " was selected");
     	
     	requests.setConnection( cname );
+    	    	
     	switcher.switchTo(2);
     }
     

@@ -111,7 +111,7 @@ public class ChartAxis : MonoBehaviour
             }
         }
         
-        // TODO: adjust holder position -> max preferredWidth <-> avoid text overlap with axis 
+        // hint: adjust holder position -> max preferredWidth <-> avoid text overlap with long members names and axis 
 
 	int y = 0;
 	foreach( string cellDescrStr in cellDescriptions ){
@@ -122,7 +122,6 @@ public class ChartAxis : MonoBehaviour
 		
 		axisDescr[y].transform.forward = descrHolder.forward;
 		axisDescr[y].transform.localScale = new Vector3(0.5f, 0.05f, 0.25f );
-		// axisDescr[y].transform.position = descrHolder.position + descrHolder.rotation * new Vector3(2.2f, y*1.1f-height, 0 );
 		axisDescr[y].transform.rotation = descrHolder.rotation;
 		axisDescr[y].name = "descr_"+cellDescrStr;
 		

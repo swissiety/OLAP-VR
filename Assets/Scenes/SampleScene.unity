@@ -356,6 +356,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   requests: {fileID: 681206031}
+  switcher: {fileID: 681206030}
   chartHolder: {fileID: 1362256626}
   myPrefab: {fileID: 6019384099853972456, guid: 5c77efaeb04fbef06875a57111c017a7, type: 3}
   axis:
@@ -7573,7 +7574,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: choose a cube
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

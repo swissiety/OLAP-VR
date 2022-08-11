@@ -30,7 +30,7 @@ public class ConfigurationScene : MonoBehaviour
          StopCoroutine("AutoSelect");
     }
     
-	    private IEnumerator AutoSelect()
+    private IEnumerator AutoSelect()
 	    {
 		yield return new WaitForSeconds(0.3f);
      	  	

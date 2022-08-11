@@ -82,8 +82,14 @@ public class DimensionScene : MonoBehaviour
 		
 		Debug.Log("Dimensions ["+dd1+", "+ dd2 + ", "+ dd3 +"] were chosen.");
 		
-		requests.setDimensions( dropdowns[0].value, dropdowns[1].value, dropdowns[2].value);
+		switcher.showLoadingScene(true);    		
+		StartCoroutine(requests.loadDimensions( dropdowns[0].value, dropdowns[1].value, dropdowns[2].value, delegate{nextScreen();} ));
 		
+	}
+	
+	
+	public void nextScreen(){
+	    	switcher.showLoadingScene(false);		
 		switcher.switchTo(4);
 	}
     

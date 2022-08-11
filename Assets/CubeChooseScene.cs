@@ -75,7 +75,7 @@ public class CubeChooseScene : MonoBehaviour
     	
 	Debug.Log(cname + " was selected");
     	
-    	requests.setCube( cname );
+    	requests.SetCube( cname );
     	switcher.switchTo(3);
     	Debug.Log("cube chosen");
     }

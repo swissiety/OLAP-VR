@@ -47,18 +47,34 @@ public class Dimension
 	
 	[XmlAttribute("type")]
 	public string dimensionType;
+	
+	
 }
 
 public class Cube
 {
 	[XmlAttribute("name")]
 	public string cubeName;
+	[XmlAttribute()]
+	public string caption;
+	[XmlAttribute()]
+	public bool visible = true;
+	[XmlAttribute()]
+	public string description;
 	[XmlAttribute]
-	public string defaultMeasure;
+	public string defaultMeasure;	
+	[XmlAttribute()]
+	public bool cache = true;
+	[XmlAttribute()]
+	public bool enabled = true;
+	
+	// [XmlElement("Annotation")]
+	// [XmlElement("Relation")]
+	// [XmlElement("CubeDimension")]		// Required
 	[XmlElement("Measure")]
 	public List<Measure> measures;
-	
-	
+	// [XmlElement("CalculatedMembers")]
+	//[XmlElement("NamedSet")]
 }
 
 public class Hierarchy 
