@@ -53,8 +53,8 @@ public class CubeState
 	}
 	
 	
-       public string buildQuery(){
-		return "SELECT " + x.buildQuery() +" ON ROWS + " + y.buildQuery() + " ON COLUMNS " ;
+       public string buildQuery(OLAPSchema schema){
+		return "SELECT " + x.buildQuery(schema) +" ON ROWS + " + y.buildQuery(schema) + " ON COLUMNS " ;
 	}
 	
 	public void PivotLeft(){
@@ -97,15 +97,15 @@ public class AxisState
 	public int hierarchy = 0;	// just use that for now  i.e. assume there is just one
 	public int level = 0;
 	
-	public int maxLevel = 0;
+	public int maxLevel = Int32.MaxValue;		// FIXME: set correct value!
 	
 	
 	// for slice (n dice)
 	public int filterMemberMin = -1;
 	public int filterMemberMax = Int32.MaxValue;		// "unfiltered"
 	
-	public string buildQuery(){
-		return "";
+	public string buildQuery(OLAPSchema schema){
+		return "" + schema.dimensions[ dimension ] + " ";
 	}
 	
 	public bool DrillDown(){

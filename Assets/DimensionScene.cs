@@ -38,9 +38,9 @@ public class DimensionScene : MonoBehaviour
 	dropdowns[ 2 ].options.Clear ();
 	foreach (Dimension d in list)
 	{
-		dropdowns[ 0 ].options.Add (new TMP_Dropdown.OptionData() {text=d.dimensionName});
-		dropdowns[ 1 ].options.Add (new TMP_Dropdown.OptionData() {text=d.dimensionName});
-		dropdowns[ 2 ].options.Add (new TMP_Dropdown.OptionData() {text=d.dimensionName});
+		dropdowns[ 0 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
+		dropdowns[ 1 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
+		dropdowns[ 2 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
 	}
 
 

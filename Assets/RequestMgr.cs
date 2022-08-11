@@ -13,11 +13,47 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 
+public class ResultSet{
+	ResultCell[] cells; 
+	ResultAxis[] axes;
+}
+
+public class ResultCell{
+
+	string formattedValue;
+   	float value;
+   	int ordinal;
+   	
+    	//  coordinates
+    	// string error;
+}
+
+public class ResultAxis{
+	int ordinal;
+	string name;
+	ResultPosition[] positions;
+}
+
+public class ResultPosition{
+	string[] memberDimensionNames;
+	string[] memberDimensionCaptions;
+	ResultPositionMember[] positionMembers;
+}
+
+public class ResultPositionMember{
+	string memberLevelName;
+	string memberLevelCaption;
+	string memberValue;
+	ResultPositionMember parentMember = null;
+}     
+
 public class RequestMgr : MonoBehaviour
 {
 
+	// server connection
 	string host = "";
 	int port = 8080;
+	// chosen database connection of the server
 	string connectionName = "";
 	// chosen cube of connection
 	public string cube;
@@ -26,7 +62,7 @@ public class RequestMgr : MonoBehaviour
 	public int y = -1;
 	public int z = -1;
 
-	// 
+	// cache the retrieved datamodel
 	OLAPSchema Schema;
 
 	
@@ -72,54 +108,75 @@ public class RequestMgr : MonoBehaviour
 		return connectionName;
 	}
 	
+	
+	public IEnumerator loadValues( CubeState cube, Action<ResultSet> callback){
+		string url = buildBaseUrl()+"query";
+		
+		string query = cube.buildQuery(Schema);
+		string queryStr = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : "+ query ;
+		Debug.Log(query);
+		
+		using ( var webRequest = CreatePostRequest( url, queryStr) ){
+   			yield return webRequest.SendWebRequest();
+	   		callback(JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text));
+   		}
+	}
+	
+	
+	
+	public IEnumerator loadDimension(int dimensionIdx){
+		string url = buildBaseUrl()+"query";
+		
+		// Dimension.hierarchy.table.name
+		string tableName = Schema.dimensions[ dimensionIdx ].hierarchy[0].name; // table.name;
+		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ Schema.dimensions[ dimensionIdx ].name +"].MEMBERS } on columns from "+ cube +"\"}";
+		Debug.Log(query);
+		using ( var webRequest = CreatePostRequest( url, query) ){
+   			yield return webRequest.SendWebRequest();
+	   		// Debug.Log( webRequest.downloadHandler.text );
+	   		ResultSet resultSet = JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text);
+   		
+   		
+			// FIXME: set maxLevel of AxisState   		
+   			/* TODO: traverse ResultSet it
+   			
+   			for( position in resultSet.axes[0] ){
+   				
+   				// memberDimensionNames
+   				for(){
+   				
+   				}		
+   				
+   			
+   			}*/
+   			
+   		}   	
+
+	}
+	
+	
+	
 	public IEnumerator loadDimensions(int x, int y, int z, Action action){
+		loadSchema();
+		
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		
-		string url = buildBaseUrl()+"query";
-		string query = "{ \"connectionName\" : \"foodmart\", \"query\" : \"select { [Measures].MEMBERS } on columns from Warehouse\"}";
-		var webRequest = CreatePostRequest( url, query);
-   		       	
-   		 yield return webRequest.SendWebRequest();
-   		
-//   		var data = JsonUtility.FromJson<Todo>(webRequest.downloadHandler.text);
-
-   		
-   		Debug.Log( webRequest.downloadHandler.text );
-   		
-   		// FIXME: set maxLevel of AxisState
-   		
-   		
-   		// FIXME: query real members!
+			
+		yield return loadDimension(x);
+		yield return loadDimension(y);
+		yield return loadDimension(z);			
+	   		
+   		/* query real members!
    		membersOfLevelCache[ Schema.dimensions[ 0 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"bla", "bli", "blupp"}; 
 	   	membersOfLevelCache[ Schema.dimensions[ 4 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
    		membersOfLevelCache[ Schema.dimensions[ 3 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
+   		*/
    		
    		action();
 	}
 	
-	
-	public bool tryConnect(string ip, int port){
-		Debug.Log("try to connect..");
-		try{
-			TcpClient socketConnection = new TcpClient( ip , port); 
-			socketConnection.Close();
-		  }
-		  catch (ArgumentNullException e)
-		  {
-		    Debug.Log("ArgumentNullException:"+ e);
-		  	return false;
-		  }
-		  catch (SocketException e)
-		  {
-		    Debug.Log("SocketException:"+ e);
-		    return false;
-		  }
-    		return true;
-    	}
-   
-    
+
     
     	Dictionary<string, List<string>> membersOfLevelCache = new Dictionary<string, List<string>>();
    	public List<string> listMembersOfLevel( AxisState axis ){
@@ -135,15 +192,13 @@ public class RequestMgr : MonoBehaviour
    		if( membersOfLevelCache.ContainsKey( key) ){
    			return membersOfLevelCache[ key ];
    		}
-   		Debug.Log("Error could not listMembersOfLevel! ["+ dimension + "] "+ levelIdx );   		
-   		
-   		//return membersOfLevelCache[ key ];
-   		return new List<string>();
+
+   		throw new Exception("There is no data for that dimension/level");
    	}
    	
    	public string getDimensionTitle( int dimension ){
    		loadSchema();
-   		return Schema.dimensions[ dimension ].dimensionName;
+   		return Schema.dimensions[ dimension ].name;
    	}
    
    
@@ -159,14 +214,12 @@ public class RequestMgr : MonoBehaviour
     UnityWebRequest CreatePostRequest(string url, string dataRaw )
     {
        
-        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
-        {
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+	request.downloadHandler = new DownloadHandlerBuffer();
+	request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(dataRaw));
+	request.SetRequestHeader("Content-Type", "application/json");
+	return request;      
         
-        	request.SetRequestHeader("Content-Type", "application/json");
-        	request.downloadHandler = new DownloadHandlerBuffer();
-		request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(dataRaw));
-       	return request;      
-        }
     }
     
 
@@ -209,27 +262,27 @@ public class RequestMgr : MonoBehaviour
 
 		XmlSerializer serializer = new XmlSerializer(typeof(OLAPSchema));
 
-/*
-		serializer.UnknownAttribute += (sender, args) =>
-{
-    System.Xml.XmlAttribute attr = args.Attr;
-    Debug.Log($"Unknown attribute {attr.Name}=\'{attr.Value}\'");
-};
-serializer.UnknownNode += (sender, args) =>
-{
-    Debug.Log($"Unknown Node:{args.Name}\t{args.Text}");
-};
-serializer.UnknownElement += 
-    (sender, args) => 
-        Debug.Log("Unknown Element:" 
-            + args.Element.Name + "\t" + args.Element.InnerXml);
-            
-serializer.UnreferencedObject += 
-    (sender, args) => 
-        Debug.Log("Unreferenced Object:"
-            + args.UnreferencedId + "\t" + args.UnreferencedObject.ToString());
+		/* DEBUG helping code
+				serializer.UnknownAttribute += (sender, args) =>
+		{
+		    System.Xml.XmlAttribute attr = args.Attr;
+		    Debug.Log($"Unknown attribute {attr.Name}=\'{attr.Value}\'");
+		};
+		serializer.UnknownNode += (sender, args) =>
+		{
+		    Debug.Log($"Unknown Node:{args.Name}\t{args.Text}");
+		};
+		serializer.UnknownElement += 
+		    (sender, args) => 
+			Debug.Log("Unknown Element:" 
+			    + args.Element.Name + "\t" + args.Element.InnerXml);
+			    
+		serializer.UnreferencedObject += 
+		    (sender, args) => 
+			Debug.Log("Unreferenced Object:"
+			    + args.UnreferencedId + "\t" + args.UnreferencedObject.ToString());
 
-	*/	
+			*/	
 		
 		using (XmlTextReader reader = new XmlTextReader (URLString))
 		{
@@ -245,6 +298,25 @@ serializer.UnreferencedObject +=
 	        return Schema.dimensions;
         }
         
-
+	public bool tryConnect(string ip, int port){
+		Debug.Log("try to connect..");
+		try{
+			TcpClient socketConnection = new TcpClient( ip , port); 
+			socketConnection.Close();
+		  }
+		  catch (ArgumentNullException e)
+		  {
+		    Debug.Log("ArgumentNullException:"+ e);
+		  	return false;
+		  }
+		  catch (SocketException e)
+		  {
+		    Debug.Log("SocketException:"+ e);
+		    return false;
+		  }
+    		return true;
+    	}
+   
+    
 
 }

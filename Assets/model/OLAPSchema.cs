@@ -39,7 +39,7 @@ public class Measure{
 public class Dimension
 {
 	[XmlAttribute("name")]
-	public string dimensionName;
+	public string name;
 	
 	[XmlElement("Hierarchy")]
 	public List<Hierarchy> hierarchy;
