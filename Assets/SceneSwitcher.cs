@@ -54,11 +54,16 @@ public class SceneSwitcher : MonoBehaviour
     	}
     }
     
-    
-    
     void Update()
     {
 
         rotatingCube.transform.Rotate(0.5f, 0, 0, Space.Self);
+        
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+        	switchTo(0);
+        }
     }
-}
+}   
+    
+ 
