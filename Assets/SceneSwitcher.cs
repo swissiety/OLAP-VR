@@ -61,6 +61,9 @@ public class SceneSwitcher : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+        	if(loading){
+        		showLoadingScene(false);
+        	}
         	switchTo(0);
         }
     }

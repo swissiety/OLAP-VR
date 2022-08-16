@@ -73,11 +73,10 @@ public class CubeChooseScene : MonoBehaviour
     		return;
     	}
     	
-	Debug.Log(cname + " was selected");
-    	
+	Debug.Log("cube "+ cname + " was selected");
     	requests.SetCube( cname );
+    	
     	switcher.switchTo(3);
-    	Debug.Log("cube chosen");
     }
     
 }

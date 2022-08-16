@@ -120,7 +120,6 @@ public class ChartAxis : MonoBehaviour
 		//cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
 		// 
 		
-		axisDescr[y].transform.forward = descrHolder.forward;
 		axisDescr[y].transform.localScale = new Vector3(0.5f, 0.05f, 0.25f );
 		axisDescr[y].transform.rotation = descrHolder.rotation;
 		axisDescr[y].name = "descr_"+cellDescrStr;
@@ -133,18 +132,17 @@ public class ChartAxis : MonoBehaviour
 				
 		y++;
 	}
-	
-	
+		
 	for( int i = 0; i < axisDescr.GetLength(0); i++){
 		Vector3 translateV;
 		
 		if(axisType == 0 ){
 			// x
-			translateV = new Vector3(-4-maxDimension*1.1f , i*1.1f-height/2, 0);			
+			translateV = new Vector3(-maxDimension*1.1f , i*1.1f-height/2, 0);			
 		}else if( axisType == 1 ){
-			translateV = new Vector3(-maxDimension*1.1f/2, i*1.1f-height, 0 );
+			translateV = new Vector3(1-maxDimension*1.1f/2, i*1.1f-height, 0 );
 		}else{
-			translateV = new Vector3( 2+ maxDimension*1.1f/2 , i*1.1f-height/2, 0);
+			translateV = new Vector3( 1+maxDimension*1.1f/2 , i*1.1f-height/2, 0);
 		}
 
 		axisDescr[i].transform.position = descrHolder.position + descrHolder.rotation * translateV;

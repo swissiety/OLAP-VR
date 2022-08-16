@@ -11,6 +11,7 @@ public class OLAPCube : MonoBehaviour
 	public RequestMgr requests;
 	public SceneSwitcher switcher;
 	
+	public GameObject tableHolder;
 	public GameObject chartHolder;
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
@@ -26,11 +27,17 @@ public class OLAPCube : MonoBehaviour
     		  	
     	UpdateAxis();
 	UpdateCoordinateSystem();
+	
+	cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension );
+	cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
+	cube.z.maxLevel = requests.GetMaxLevelDepth( cube.z.dimension);
+	
+	drawTable( null );
+	
     	Debug.Log("olapcube enabled");
     	
     }
     
-    int[] currentMemberSize = new int[3];
     int maxDescr = 0;
     void UpdateAxis(){
 	  UpdateAxis( cube.x );
@@ -48,21 +55,29 @@ public class OLAPCube : MonoBehaviour
 	
 	List<string> member = requests.listMembersOfLevel(axisState );
 	ChartAxis axisScript = (ChartAxis) axis[ axisIdx].GetComponent(typeof(ChartAxis));
-	currentMemberSize[axisIdx] = member.Count;
-	maxDescr = Mathf.Max( currentMemberSize[0], Mathf.Max(currentMemberSize[1], currentMemberSize[2]));
 	
+	maxDescr = Mathf.Max( requests.listMembersOfLevel( cube.x ).Count, Mathf.Max(requests.listMembersOfLevel( cube.y ).Count, requests.listMembersOfLevel( cube.z ).Count));
+
 	axisScript.UpdateAxis( requests.getDimensionTitle(axisMapping), member, maxDescr);
     }
     
     void UpdateCoordinateSystem(){
         UpdateCubeSize();
  	
-    	float maxDim = (maxDescr+2) * 1.1f;
-	float scale = maxDim/6;
+    	float maxDim = (maxDescr) * 1.1f;
+	float scale = 8;
 	
+	transform.localPosition = new Vector3(0 , 0, 0 );
+	transform.localScale = new Vector3(maxDim/scale*2.0f , maxDim/scale *2.0f, maxDim/scale*2.0f );
+
+	maxDim += 2;	
 	// center & scale chartholder
-	chartHolder.transform.localPosition = new Vector3(-maxDim/4 , -maxDim/2, maxDim/2 );
-	chartHolder.transform.localScale = new Vector3(scale , scale, scale );
+	chartHolder.transform.localPosition = new Vector3(2+-maxDim/2  , 2+-maxDim/2, 2-maxDim/2 );
+	chartHolder.transform.localScale = new Vector3(maxDim/scale , maxDim/scale, maxDim/scale );
+
+	target.transform.localPosition = transform.localPosition;
+	target.transform.localScale = transform.localScale;
+
     }
 
     
@@ -82,7 +97,7 @@ public class OLAPCube : MonoBehaviour
 
     public void zoomOut( int idx){
     	AxisState axis = cube.getAxis(idx);
-	if( axis.DrillDown() ){
+	if( axis.RollUp() ){
 		Debug.Log( "zoom in.");
 		UpdateAxis(  axis  );
 		UpdateCoordinateSystem();
@@ -129,12 +144,13 @@ public class OLAPCube : MonoBehaviour
 			for(int z = 0; z < zH; z++){
 			
 				// Instantiate at position, rotation.
-				GameObject cube = Instantiate(myPrefab, new Vector3(x*1.1f-xHeight, y*1.1f-yHeight, z*1.1f-zHeight), Quaternion.identity);
+				GameObject cube = Instantiate(myPrefab, new Vector3(transform.position.x+x*1.2f-xHeight, transform.position.y+y*1.2f-yHeight, transform.position.z+z*1.2f-zHeight), Quaternion.identity);
 				 
 				cube.GetComponent<Renderer>().material.color = new Color(0.246f, 0.059f, 0.106f, 1.000f);
 				cube.transform.SetParent(transform);
  
 				cube.name = "cell_"+x +"_"+ y +"_"+ z;
+				cube.transform.localScale = new Vector3(1,1,1);
 				grid[x,y,z] = cube;
 								
 			}		
@@ -185,11 +201,11 @@ public class OLAPCube : MonoBehaviour
         
 		if ( Input.GetMouseButton(0))
 		{
-			if(dragRotate){
-		    // while the mouse is held down the cube can be moved around its central axis to provide visual feedback
-		    mouseDelta = Input.mousePosition - previousMousePosition;
-		    mouseDelta *= 0.2f; // reduction of rotation speed
-		    transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
+		    if(dragRotate){
+			    // while the mouse is held down the cube can be moved around its central axis to provide visual feedback
+			    mouseDelta = Input.mousePosition - previousMousePosition;
+			    mouseDelta *= 0.2f; // reduction of rotation speed
+			    transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
 		    }
 		}
 		else
@@ -224,53 +240,29 @@ public class OLAPCube : MonoBehaviour
 		    //normalize the 2d vector
 		    currentSwipe.Normalize();
 
-		    if (LeftSwipe(currentSwipe))
+		    if (isLeftSwipe(currentSwipe))
 		    {
-		        target.transform.Rotate(0, 90, 0, Space.World);
-		        Debug.Log("left");
-		        cube.PivotLeft();
-		        UpdateAxis( cube.x);
-     			UpdateAxis( cube.z);
+			LeftSwipe();
 		    }
-		    else if (RightSwipe(currentSwipe))
+		    else if (isRightSwipe(currentSwipe))
 		    {
-		        target.transform.Rotate(0, -90, 0, Space.World);
-		    	Debug.Log("right");
-			cube.PivotRight();
-		        UpdateAxis(cube.x);
-     			UpdateAxis(cube.z);
+		    	RightSwipe();
 		    }
-		    else if (UpLeftSwipe(currentSwipe))
+		    else if (isUpLeftSwipe(currentSwipe))
 		    {
-		        target.transform.Rotate(90, 0, 0, Space.World);
-		    	Debug.Log("upLeft");
-		    	cube.PivotUpLeft();
-		        UpdateAxis(cube.x);
-     			UpdateAxis(cube.y);
+		    	UpLeftSwipe();
 		    }
-		    else if (UpRightSwipe(currentSwipe))
+		    else if (isUpRightSwipe(currentSwipe))
 		    {
-		        target.transform.Rotate(0, 0, -90, Space.World);
-		    	Debug.Log("upRight");
-		    	cube.PivotUpRight();
-	        	UpdateAxis(cube.y);
-		        UpdateAxis(cube.z);
+		    	UpRightSwipe();
 		    }
-		    else if (DownLeftSwipe(currentSwipe))
+		    else if (isDownLeftSwipe(currentSwipe))
 		    {
-		     	 target.transform.Rotate(0, 0, 90, Space.World);
-		    	Debug.Log("downLeft");
-			cube.PivotDownLeft();
-		        UpdateAxis(cube.y);
-		        UpdateAxis(cube.z);
+		    	DownLeftSwipe();
 		    }
-		    else if (DownRightSwipe(currentSwipe))
+		    else if (isDownRightSwipe(currentSwipe))
 		    {
-		        target.transform.Rotate(-90, 0, 0, Space.World);
-		    	Debug.Log("downRight");
-		    	cube.PivotDownRight();
-     			UpdateAxis(cube.x);
-     			UpdateAxis(cube.y);
+		    	DownRightSwipe();
 		    }
 	      }else{
 	      		// reset
@@ -280,36 +272,137 @@ public class OLAPCube : MonoBehaviour
         }
     }
 
-    bool LeftSwipe(Vector2 swipe)
+
+
+
+    void LeftSwipe()
+    {
+    		        target.transform.Rotate(0, 90, 0, Space.World);
+		        Debug.Log("left");
+		        cube.PivotLeft();
+		        UpdateAxis( cube.x);
+     			UpdateAxis( cube.z);
+    }
+
+    void RightSwipe()
+    {
+        
+		    	target.transform.Rotate(0, -90, 0, Space.World);
+		    	Debug.Log("right");
+			cube.PivotRight();
+		        UpdateAxis(cube.x);
+     			UpdateAxis(cube.z);
+    }
+
+    void UpLeftSwipe()
+    {
+     		        target.transform.Rotate(90, 0, 0, Space.World);
+		    	Debug.Log("upLeft");
+		    	cube.PivotUpLeft();
+		        UpdateAxis(cube.x);
+     			UpdateAxis(cube.y);
+   
+    }
+
+    void UpRightSwipe()
+    {
+    
+		        target.transform.Rotate(0, 0, -90, Space.World);
+		    	Debug.Log("upRight");
+		    	cube.PivotUpRight();
+	        	UpdateAxis(cube.y);
+		        UpdateAxis(cube.z);
+    }
+
+    void DownLeftSwipe()
+    {
+    
+		     	 target.transform.Rotate(0, 0, 90, Space.World);
+		    	Debug.Log("downLeft");
+			cube.PivotDownLeft();
+		        UpdateAxis(cube.y);
+		        UpdateAxis(cube.z);
+    }
+
+    void DownRightSwipe()
+    {
+    		        target.transform.Rotate(-90, 0, 0, Space.World);
+		    	Debug.Log("downRight");
+		    	cube.PivotDownRight();
+     			UpdateAxis(cube.x);
+     			UpdateAxis(cube.y);
+    }
+    
+
+
+
+    bool isLeftSwipe(Vector2 swipe)
     {
         return currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f;
     }
 
-    bool RightSwipe(Vector2 swipe)
+    bool isRightSwipe(Vector2 swipe)
     {
         return currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f;
     }
 
-    bool UpLeftSwipe(Vector2 swipe)
+    bool isUpLeftSwipe(Vector2 swipe)
     {
         return currentSwipe.y > 0 && currentSwipe.x < 0f;
     }
 
-    bool UpRightSwipe(Vector2 swipe)
+    bool isUpRightSwipe(Vector2 swipe)
     {
         return currentSwipe.y > 0 && currentSwipe.x > 0f;
     }
 
-    bool DownLeftSwipe(Vector2 swipe)
+    bool isDownLeftSwipe(Vector2 swipe)
     {
         return currentSwipe.y < 0 && currentSwipe.x < 0f;
     }
 
-    bool DownRightSwipe(Vector2 swipe)
+    bool isDownRightSwipe(Vector2 swipe)
     {
         return currentSwipe.y < 0 && currentSwipe.x > 0f;
     }   
     
+    
+    void drawTable ( ResultSet results ) {
+         
+         if( results == null ){
+	 
+	 	GameObject obj =  GameObject.CreatePrimitive(PrimitiveType.Plane);
+	 	
+	 	TextMeshPro emptyinfo = obj.AddComponent<TextMeshPro>();
+	 	emptyinfo.SetText("Loading.");
+	 	// emptyinfo.alignment = AlignmentTypes.Center;
+//	 	obj.transform.position = tableHolder.transform.position;
+ 	 	obj.transform.SetParent(tableHolder.transform);
+		obj.transform.position = new Vector3(0.5f, 0.1f, 0);
+	 	
+	 	
+	 }else{
+	 	
+	 	float width = 1.0f;
+	 	float height = 1.0f;
+/*
+		// FIXME: incorporate texts
+		 
+		 // draw lines
+		 for(int i = rows; i >= 0; i--){
+		 	// width
+		 }
+		 
+		 
+		 for(int i = cols; i >= 0; i--){
+		 	// height
+		 }
+		 */
+		 
+		 
+         }
+     }
+     
     
     static void Swap<T>(ref T x, ref T y){
 	     T t = y;

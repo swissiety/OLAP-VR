@@ -13,38 +13,61 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 
+
+[System.Serializable]
 public class ResultSet{
-	ResultCell[] cells; 
-	ResultAxis[] axes;
+	public ResultCell[] cells = new ResultCell[0]; 
+	public ResultAxis[] axes = new ResultAxis[0];
+	
+	public ResultAxis getAxis(string name){
+		
+		for(int i = 0; i < axes.GetLength(0); i++){
+			if( string.Equals( name , axes[i].name) ){
+				return axes[i];
+			}
+		}
+		throw new Exception( name +"Not found");
+	}
 }
 
+[System.Serializable]
 public class ResultCell{
 
-	string formattedValue;
-   	float value;
-   	int ordinal;
+	public string formattedValue;
+   	public float value;
+   	public int ordinal;
    	
     	//  coordinates
     	// string error;
 }
-
+[System.Serializable]
 public class ResultAxis{
-	int ordinal;
-	string name;
-	ResultPosition[] positions;
+	public int ordinal;
+	public string name;
+	public ResultPosition[] positions;
+	
+	public ResultPosition getPosition(string name){
+	
+	for(int i = 0; i < positions.GetLength(0); i++){
+		if( string.Equals( name , positions[i].memberDimensionNames) ){
+			return positions[i];
+		}
+	}
+	throw new Exception( name +"Not found");
 }
-
+}
+[System.Serializable]
 public class ResultPosition{
-	string[] memberDimensionNames;
-	string[] memberDimensionCaptions;
-	ResultPositionMember[] positionMembers;
+	public string[] memberDimensionNames;
+	public string[] memberDimensionCaptions;
+	public ResultPositionMember[] positionMembers;
 }
-
+[System.Serializable]
 public class ResultPositionMember{
-	string memberLevelName;
-	string memberLevelCaption;
-	string memberValue;
-	ResultPositionMember parentMember = null;
+	public string memberLevelName;
+	public string memberLevelCaption;
+	public string memberValue;
+	public ResultPositionMember parentMember = null;
 }     
 
 public class RequestMgr : MonoBehaviour
@@ -63,7 +86,7 @@ public class RequestMgr : MonoBehaviour
 	public int z = -1;
 
 	// cache the retrieved datamodel
-	OLAPSchema Schema;
+	OLAPSchema Schema = null;
 
 	
 	public CubeState getCubeState(){
@@ -125,38 +148,61 @@ public class RequestMgr : MonoBehaviour
 	
 	
 	public IEnumerator loadDimension(int dimensionIdx){
+		loadSchema();
 		string url = buildBaseUrl()+"query";
 		
 		// Dimension.hierarchy.table.name
 		string tableName = Schema.dimensions[ dimensionIdx ].hierarchy[0].name; // table.name;
 		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ Schema.dimensions[ dimensionIdx ].name +"].MEMBERS } on columns from "+ cube +"\"}";
-		Debug.Log(query);
+		// Debug.Log(query);
 		using ( var webRequest = CreatePostRequest( url, query) ){
    			yield return webRequest.SendWebRequest();
 	   		// Debug.Log( webRequest.downloadHandler.text );
 	   		ResultSet resultSet = JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text);
-   		
-   		
-			// FIXME: set maxLevel of AxisState   		
-   			/* TODO: traverse ResultSet it
    			
-   			for( position in resultSet.axes[0] ){
-   				
-   				// memberDimensionNames
-   				for(){
-   				
-   				}		
-   				
+   			// Debug.Log( "cells"+ resultSet.cells.GetLength(0) +  " axes"+ resultSet.axes.GetLength(0) );
    			
-   			}*/
-   			
+			ResultAxis axis = resultSet.getAxis("COLUMNS");
+			
+			
+			int levelCount = Schema.dimensions[ dimensionIdx ].hierarchy[0].levels.Count;
+			// Debug.Log(levelCount);
+			Dictionary<string, int> levelMap = new Dictionary<string, int>();
+			for(int l = 0; l < levelCount; l++){
+				membersOfLevelCache[ Schema.dimensions[ dimensionIdx ].hierarchy[0].levels[ l ] ] = new List<string>(); 
+				levelMap.Add( Schema.dimensions[ dimensionIdx ].hierarchy[0].levels[ l ].levelName, l );
+			}
+			
+			for(int i = 0; i < axis.positions.GetLength(0);i++){
+				// Debug.Log("posname "+ axis.positions[i].memberDimensionNames);
+				var pos = axis.positions[i];				
+				var posMember = pos.positionMembers[0];
+				do{
+					int levelIdx;
+					if( levelMap.ContainsKey(posMember.memberLevelCaption) ){
+						levelIdx = levelMap[posMember.memberLevelCaption]	;				
+					}else{
+						levelIdx = 0;
+					}
+					
+					membersOfLevelCache[ Schema.dimensions[ dimensionIdx ].hierarchy[0].levels[ levelIdx] ].Add( posMember.memberValue ); 	
+					posMember = posMember.parentMember;
+				}while(posMember != null);
+				
+			
+			}
+			
    		}   	
 
 	}
 	
+	public int GetMaxLevelDepth(int dimensionIdx){
+		return Schema.dimensions[ dimensionIdx ].hierarchy[0].levels.Count;
+	}
 	
 	
-	public IEnumerator loadDimensions(int x, int y, int z, Action action){
+	
+	public IEnumerator loadDimensions(int x, int y, int z, Action callback){
 		loadSchema();
 		
 		this.x = x;
@@ -167,18 +213,17 @@ public class RequestMgr : MonoBehaviour
 		yield return loadDimension(y);
 		yield return loadDimension(z);			
 	   		
-   		/* query real members!
-   		membersOfLevelCache[ Schema.dimensions[ 0 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"bla", "bli", "blupp"}; 
-	   	membersOfLevelCache[ Schema.dimensions[ 4 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
-   		membersOfLevelCache[ Schema.dimensions[ 3 ].hierarchy[0].levels[0].levelName ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
-   		*/
+   		// example filling for members of the first level of dimensions
+   		//membersOfLevelCache[ Schema.dimensions[ 4 ].hierarchy[0].levels[0] ] = new List<string>(){"bla", "bli", "blupp"}; 
+	   	// membersOfLevelCache[ Schema.dimensions[ 0 ].hierarchy[0].levels[0]] = new List<string>(){"Paderborn", "Lippe", "Höxter", "München", "Berlin", "NY", "Hamburg"};
+   		// membersOfLevelCache[ Schema.dimensions[ 3 ].hierarchy[0].levels[0] ] = new List<string>(){"Montag", "Dienstag", "Mittwoch", "Donnerstag","Freitag", "Wochenende"};
    		
-   		action();
+   		callback();
 	}
 	
 
     
-    	Dictionary<string, List<string>> membersOfLevelCache = new Dictionary<string, List<string>>();
+    	Dictionary<Level, List<string>> membersOfLevelCache = new Dictionary<Level, List<string>>();
    	public List<string> listMembersOfLevel( AxisState axis ){
    		loadSchema();
    		int dimension = axis.dimension;
@@ -186,14 +231,15 @@ public class RequestMgr : MonoBehaviour
    		
    		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
    		Debug.Log("retrieve members of: "+ Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName );
-   		// FIXME incorporate   		
    		
-   		string key = Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx].levelName;
+   		Level key = Schema.dimensions[ dimension ].hierarchy[0].levels[levelIdx];
    		if( membersOfLevelCache.ContainsKey( key) ){
+   			// Debug.Log("members: " + membersOfLevelCache[ key ] + " " + membersOfLevelCache[ key ][0] );
    			return membersOfLevelCache[ key ];
    		}
 
-   		throw new Exception("There is no data for that dimension/level");
+   		// throw new Exception("There is no data for that dimension/level");
+   		return new List<string>(){"No Data."};
    	}
    	
    	public string getDimensionTitle( int dimension ){
@@ -221,8 +267,6 @@ public class RequestMgr : MonoBehaviour
 	return request;      
         
     }
-    
-
     
 	
 	public IEnumerator loadCubeConnections( Action<Dictionary < string, string > > callback){
@@ -253,10 +297,10 @@ public class RequestMgr : MonoBehaviour
 
 	public bool loadSchema()
     	{   
-    	
     		if( Schema != null ){
     			return true;
     		}
+    		
 		string URLString = buildBaseUrl()+"getSchema?connectionName="+ connectionName;
 		Debug.Log("load schema: "+ URLString); 
 
