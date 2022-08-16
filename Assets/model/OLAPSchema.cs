@@ -15,8 +15,17 @@ public class OLAPSchema
     	[XmlElement("Dimension")]
 	public List<Dimension> dimensions;
 	
+	public Dimension getDimension(string name){
+		return dimensions.Find(d => string.Equals(d.name, name) );
+	}
+	
 	[XmlElement("Cube")]
 	public List<Cube> cubes;
+	
+	public Cube getCube(string name){
+		return cubes.Find(x => string.Equals(x.cubeName, name) );
+	}
+	
 	
 	// List<VirtualCube> vcubes;
 	// List<Role> roles;
@@ -51,6 +60,15 @@ public class Dimension
 	
 }
 
+
+public class DimensionUsage{
+	[XmlAttribute()]
+	public string name;
+	[XmlAttribute()]
+	public string source;
+}
+
+
 public class Cube
 {
 	[XmlAttribute("name")]
@@ -68,14 +86,20 @@ public class Cube
 	[XmlAttribute()]
 	public bool enabled = true;
 	
+	[XmlElement("DimensionUsage")]
+	public List<DimensionUsage> dimensionUsages; 
+	
 	// [XmlElement("Annotation")]
 	// [XmlElement("Relation")]
-	// [XmlElement("CubeDimension")]		// Required
+	[XmlElement("Dimension")]		// Required
+	public List<Dimension> dimensions;
+	
 	[XmlElement("Measure")]
 	public List<Measure> measures;
 	// [XmlElement("CalculatedMembers")]
 	//[XmlElement("NamedSet")]
 }
+
 
 public class Hierarchy 
 {

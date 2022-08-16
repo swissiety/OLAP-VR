@@ -49,7 +49,7 @@ public class OLAPCube : MonoBehaviour
     
     void UpdateAxis( AxisState axisState ){
 	
-	int axisMapping = axisState.dimension;
+	string axisMapping = axisState.dimension;
 	int level = axisState.level;
 	int axisIdx = cube.getAxisIdx(axisState);
 	

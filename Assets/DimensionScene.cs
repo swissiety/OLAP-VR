@@ -22,7 +22,7 @@ public class DimensionScene : MonoBehaviour
     {
     
     	// title	
-    	connectionText.text = "Connection '"+requests.getConnection()+"'";
+    	connectionText.text = "Cube '"+requests.cube+"'";
     
         chooseButton.onClick.AddListener(TaskOnClick);
 
@@ -44,7 +44,7 @@ public class DimensionScene : MonoBehaviour
 	}
 
 
-	StartCoroutine(AutoSelect());
+	// StartCoroutine(AutoSelect());
 
     }
     
@@ -54,11 +54,16 @@ public class DimensionScene : MonoBehaviour
     
     private IEnumerator AutoSelect()
     {
-	yield return new WaitForSeconds(0.6f);
      	// FIXME: remove in production!
 	dropdowns[0].value = 0;
 	dropdowns[1].value = 4;	
 	dropdowns[2].value = 3;
+
+	yield return new WaitForSeconds(0.1f);
+	     	
+	ScreenCapture.CaptureScreenshot("DimensionScene.png", 4);
+	yield return new WaitForSeconds(0.1f);
+
 	TaskOnClick();
 	
     }
@@ -83,7 +88,7 @@ public class DimensionScene : MonoBehaviour
 		Debug.Log("Dimensions ["+dd1+", "+ dd2 + ", "+ dd3 +"] were chosen.");
 		
 		switcher.showLoadingScene(true);    		
-		StartCoroutine(requests.loadDimensions( dropdowns[0].value, dropdowns[1].value, dropdowns[2].value, delegate{nextScreen();} ));
+		StartCoroutine(requests.loadDimensions( dd1, dd2, dd3, delegate{nextScreen();} ));
 		
 	}
 	

@@ -36,14 +36,17 @@ public class CubeChooseScene : MonoBehaviour
 			dropdown.options.Add (new TMP_Dropdown.OptionData() {text=c.cubeName});
 		}    	
 	    	
+	    	/* FIXME
 	    	if( schema.cubes.Count == 1){
 	    	    	dropdown.value  = 0;
 	    	    	OnSelect();
+	    		return;
 	    	}
+	    	*/
 	    	
-	    	Debug.Log("CubechooseScene 6");
+	    	Debug.Log("CubechooseScene");
 		// FIXME: remove in production
-		 StartCoroutine(AutoSelect());
+		// StartCoroutine("AutoSelect");
     }
     
     void OnDisable(){
@@ -51,8 +54,12 @@ public class CubeChooseScene : MonoBehaviour
     }
     
 	private IEnumerator AutoSelect(){
-	    	yield return new WaitForSeconds(0.3f);
 	  	dropdown.value = 2;
+	  	dropdown.Show();
+		yield return new WaitForSeconds(0.2f);
+	  	ScreenCapture.CaptureScreenshot("CubeChooseScene.png", 4);
+	    	yield return new WaitForSeconds(0.3f);
+	  	
 	    	OnSelect();
 	}
     

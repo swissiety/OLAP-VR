@@ -44,15 +44,18 @@ public class ConnectionScene : MonoBehaviour
 			dropdown.options.Add (new TMP_Dropdown.OptionData() {text=conn.Key});
 		}    	
 	    	
+	    	/* FIXME 
 	    	if( connections.Count == 1){
 	    	    	dropdown.value  = 0;
 	    	    	OnSelect();
+	    		return;
 	    	}
+	    	*/
 	    	
 	    	    	
 		// FIXME: remove in production
-		StartCoroutine(AutoSelect());
-
+		 StartCoroutine(AutoSelect());
+		
     }
     
     
@@ -61,8 +64,11 @@ public class ConnectionScene : MonoBehaviour
     }
     
 	private IEnumerator AutoSelect(){
-	    	yield return new WaitForSeconds(0.3f);
-	  	dropdown.value = 2;
+		dropdown.value = 2;		
+		dropdown.Show();
+	    	yield return new WaitForSeconds(0.1f);
+	  	ScreenCapture.CaptureScreenshot("ConnectionScene.png", 4);
+	    	yield return new WaitForSeconds(0.1f);
 	    	OnSelect();
 	}
     

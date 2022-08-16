@@ -21,7 +21,11 @@ public class ConfigurationScene : MonoBehaviour
   		// connectButton.interactable = false;
   		connectButton.onClick.AddListener(TaskOnClick);
   		// ip.onValueChanged.AddListener(TaskTextChanged);
-  	
+  		
+  		// remove defaults?
+  		ip.text = "127.0.0.1";
+  		port.text = "8080";
+  		
 	StartCoroutine(AutoSelect());
 
     }
@@ -32,11 +36,10 @@ public class ConfigurationScene : MonoBehaviour
     
     private IEnumerator AutoSelect()
 	    {
-		yield return new WaitForSeconds(0.3f);
+  		ScreenCapture.CaptureScreenshot("ConfigurationScene.png", 4);
+
+		yield return new WaitForSeconds(0.2f);
      	  	
-	  	// TODO: remove defaults
-  		ip.text = "127.0.0.1";
-  		port.text = "8080";
   		// FIXME: remove in production!  		
   		TaskOnClick();
 	}
@@ -68,7 +71,7 @@ public class ConfigurationScene : MonoBehaviour
 		if( successful ){
 			requests.setServerConnection(ip.text.ToString(), Int32.Parse(port.text.ToString()));
 			switcher.switchTo(1);
-			Debug.Log("connect ok");
+			Debug.Log("connect to "+  ip.text.ToString() + ":"+ port.text.ToString() +" was successful.");
 		}else{
 			Toast.Show ("Connection to "+  ip.text.ToString() + ":"+ port.text.ToString() +" failed.", 2.0f);
 		}
@@ -78,7 +81,7 @@ public class ConfigurationScene : MonoBehaviour
  
  	public static bool ValidateIP(string strIP)
 	{
-	 IPAddress result = null;
+	    IPAddress result = null;
 	    return !string.IsNullOrEmpty(strIP) && IPAddress.TryParse(strIP, out result);
 	}
  

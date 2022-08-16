@@ -93,7 +93,7 @@ public class CubeState
 
 public class AxisState
 {
-	public int dimension = -1;
+	public string dimension = "";
 	public int hierarchy = 0;	// just use that for now  i.e. assume there is just one
 	public int level = 0;
 	
@@ -105,7 +105,7 @@ public class AxisState
 	public int filterMemberMax = Int32.MaxValue;		// "unfiltered"
 	
 	public string buildQuery(OLAPSchema schema){
-		return "" + schema.dimensions[ dimension ] + " ";
+		return "" + dimension + " ";
 	}
 	
 	public bool DrillDown(){
