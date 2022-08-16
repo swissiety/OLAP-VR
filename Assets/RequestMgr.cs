@@ -154,7 +154,7 @@ public class RequestMgr : MonoBehaviour
 		Debug.Log( dimensionName );
 		Dimension dim = getCubesDimension(dimensionName);
 		string tableName = dim.hierarchy[0].name; // table.name;
-		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ dim.name +"].MEMBERS } on columns from "+ cube +"\"}";
+		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ dim.name +"].MEMBERS } on columns from ["+ cube +"]\"}";
 		Debug.Log(query);
 		string url = buildBaseUrl()+"query";
 		using ( var webRequest = CreatePostRequest( url, query) ){
@@ -197,6 +197,7 @@ public class RequestMgr : MonoBehaviour
    		}   	
 
 	}
+
 	
 	public int GetMaxLevelDepth(string dimensionName){
 		return getCubesDimension(dimensionName).hierarchy[0].levels.Count;
