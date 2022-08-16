@@ -26,8 +26,9 @@ public class ConfigurationScene : MonoBehaviour
   		ip.text = "127.0.0.1";
   		port.text = "8080";
   		
-	StartCoroutine(AutoSelect());
-
+		if(!switcher.production){
+			StartCoroutine("AutoSelect");
+		}
     }
     
     void OnDisable(){
@@ -36,12 +37,10 @@ public class ConfigurationScene : MonoBehaviour
     
     private IEnumerator AutoSelect()
 	    {
-  		ScreenCapture.CaptureScreenshot("ConfigurationScene.png", 4);
-
-		yield return new WaitForSeconds(0.2f);
+  	
+		yield return new WaitForSeconds(0.1f);
      	  	
-  		// FIXME: remove in production!  		
-  		TaskOnClick();
+		TaskOnClick();
 	}
 
 	void TaskTextChanged(){

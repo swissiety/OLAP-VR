@@ -53,8 +53,9 @@ public class ConnectionScene : MonoBehaviour
 	    	*/
 	    	
 	    	    	
-		// FIXME: remove in production
-		 StartCoroutine(AutoSelect());
+		if(!switcher.production){
+			StartCoroutine("AutoSelect");
+		}
 		
     }
     
@@ -66,8 +67,6 @@ public class ConnectionScene : MonoBehaviour
 	private IEnumerator AutoSelect(){
 		dropdown.value = 2;		
 		dropdown.Show();
-	    	yield return new WaitForSeconds(0.1f);
-	  	ScreenCapture.CaptureScreenshot("ConnectionScene.png", 4);
 	    	yield return new WaitForSeconds(0.1f);
 	    	OnSelect();
 	}

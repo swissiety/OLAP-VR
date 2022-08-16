@@ -36,6 +36,10 @@ public class DimensionScene : MonoBehaviour
 	dropdowns[ 0 ].options.Clear ();
 	dropdowns[ 1 ].options.Clear ();
 	dropdowns[ 2 ].options.Clear ();
+	dropdowns[0].value = -1;
+	dropdowns[1].value = -1;
+	dropdowns[2].value = -1;
+	
 	foreach (Dimension d in list)
 	{
 		dropdowns[ 0 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
@@ -44,7 +48,9 @@ public class DimensionScene : MonoBehaviour
 	}
 
 
-	// StartCoroutine(AutoSelect());
+	if(!switcher.production){
+		StartCoroutine("AutoSelect");
+	}
 
     }
     
@@ -59,9 +65,6 @@ public class DimensionScene : MonoBehaviour
 	dropdowns[1].value = 4;	
 	dropdowns[2].value = 3;
 
-	yield return new WaitForSeconds(0.1f);
-	     	
-	ScreenCapture.CaptureScreenshot("DimensionScene.png", 4);
 	yield return new WaitForSeconds(0.1f);
 
 	TaskOnClick();

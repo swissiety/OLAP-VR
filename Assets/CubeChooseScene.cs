@@ -44,9 +44,9 @@ public class CubeChooseScene : MonoBehaviour
 	    	}
 	    	*/
 	    	
-	    	Debug.Log("CubechooseScene");
-		// FIXME: remove in production
-		// StartCoroutine("AutoSelect");
+	    	if(!switcher.production){
+			StartCoroutine("AutoSelect");
+		}
     }
     
     void OnDisable(){
@@ -57,9 +57,6 @@ public class CubeChooseScene : MonoBehaviour
 	  	dropdown.value = 2;
 	  	dropdown.Show();
 		yield return new WaitForSeconds(0.2f);
-	  	ScreenCapture.CaptureScreenshot("CubeChooseScene.png", 4);
-	    	yield return new WaitForSeconds(0.3f);
-	  	
 	    	OnSelect();
 	}
     

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class SceneSwitcher : MonoBehaviour
 {
+	public bool production = true;
+
 
 	public GameObject[] scenes; 
 	public GameObject rotatingCube; 
@@ -54,10 +56,17 @@ public class SceneSwitcher : MonoBehaviour
     	}
     }
     
+    
+    int shots = 0;
     void Update()
     {
 
         rotatingCube.transform.Rotate(0.5f, 0, 0, Space.Self);
+        
+        if (Input.GetKeyDown(KeyCode.Space)){
+ 	       ScreenCapture.CaptureScreenshot("shot_"+ (shots++) +".png", 4);
+	}
+        
         
         if (Input.GetKeyDown(KeyCode.Escape))
         {
