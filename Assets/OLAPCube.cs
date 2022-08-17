@@ -12,7 +12,10 @@ public class OLAPCube : MonoBehaviour
 	public RequestMgr requests;
 	public SceneSwitcher switcher;
 	
+	public TMP_Text measureText;	
+	public Button undoButton;	
 	public GameObject tableHolder;
+	
 	public GameObject chartHolder;
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
      	public GameObject myPrefab;
@@ -21,25 +24,48 @@ public class OLAPCube : MonoBehaviour
      	private CubeState cube;      	
 	private GameObject[,,] grid = new GameObject[0,0,0];
 	
+	Stack<CubeState> undoStack = new Stack<CubeState>();
+	
+	
+    void Awake(){
+    
+    	undoButton.onClick.AddListener(OnUndoButtonClick);
+
+    } 	
 	
     void OnEnable()
     {	
-    	cube = requests.getCubeState();
-    		  	
-    	UpdateAxis();
-	UpdateCoordinateSystem();
-	
-	cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension );
-	cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
-	cube.z.maxLevel = requests.GetMaxLevelDepth( cube.z.dimension);
-	
-	drawTable( null );
-	
-    	Debug.Log("olapcube enabled");
+    		
+    	initCubeState(requests.getCubeState());
     	
     }
     
-    	void UpdateResults(){
+	public void initCubeState( CubeState cs ){
+	
+		cube = cs;
+	    	
+	    	// reset target
+	    	transform.rotation = Quaternion.identity; 
+	    	target.transform.rotation = Quaternion.identity; 
+	    	
+	    	UpdateAxis();
+		UpdateCoordinateSystem();
+		
+		cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension );
+		cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
+		cube.z.maxLevel = requests.GetMaxLevelDepth( cube.z.dimension);
+		
+		measureText.SetText( cube.measure );		
+		UpdateResults();
+	
+	}
+	
+	void UpdateResults(){
+	
+		undoStack.Push( cube.Clone() );
+		if( undoStack.Count > 1){
+			undoButton.interactable = true;
+		}
 	
 		Debug.Log("request results");
 		drawTable(null);
@@ -57,6 +83,24 @@ public class OLAPCube : MonoBehaviour
 		drawTable( result );		
 	
 	} 
+
+
+	void OnUndoButtonClick(){
+		if( undoStack.Count >= 2){
+
+			// remove the current state - (first) state gets pushed back after initCubeState
+			undoStack.Pop();
+			initCubeState(undoStack.Pop());
+
+			if( undoStack.Count == 0){
+				undoButton.interactable = false;
+			}
+			Debug.Log("undo");
+		}else{
+			Debug.Log("nothing to undo");
+		}
+
+	}
 
     
     
@@ -451,7 +495,8 @@ public class OLAPCube : MonoBehaviour
  	
      }
      
-    
+
+
     static void Swap<T>(ref T x, ref T y){
 	     T t = y;
 	     y = x;

@@ -3,19 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class CubeState
 {
-
-	string host = "";
-	int port = 8080;
-	string connectionName = "";
-
 	public string cubeName;		
 	public string measure = "";
 
 	public AxisState x;
 	public AxisState y;
 	public AxisState z;
+	
+	public CubeState Clone()
+	     {
+		CubeState c = new CubeState();
+		c.cubeName = cubeName;
+		c.measure = measure;
+		
+		c.x = new AxisState();
+		c.x.dimension = x.dimension;
+		c.y = new AxisState();
+		c.y.dimension = y.dimension;
+		c.z = new AxisState();
+		c.z.dimension = z.dimension;
+		return c;
+	     }
 	
 	public AxisState getAxis(int idx){
 		switch( idx){
@@ -96,7 +107,7 @@ public class CubeState
 	
 }
 
-
+[Serializable]
 public class AxisState
 {
 	public string dimension = "";
@@ -111,12 +122,15 @@ public class AxisState
 	public int filterMemberMax = Int32.MaxValue;		// FIXME: "unfiltered"
 	
 	public string buildQuery(CubeState cstate, OLAPSchema schema){
-		string q = " [" + dimension + "]";
+		string q = "NON EMPTY [" + dimension + "]";
 		List<Level> levels = schema.getCubesDimension(cstate.cubeName, dimension).hierarchy[0].levels;
 		for(int i = 0; i <= level; i++){
 			q += ".[" + levels[i].levelName + "]";
 		}
 		q += ".MEMBERS";
+		
+		// for slicing add sth like: HAVING [Measures].[Internet Sales Amount]>15000  
+		
 		return q;
 	}
 	

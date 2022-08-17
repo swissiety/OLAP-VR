@@ -163,11 +163,11 @@ public class RequestMgr : MonoBehaviour
 		loadSchema();
 		
 		// Dimension.hierarchy.table.name
-		Debug.Log( dimensionName );
+		//Debug.Log( dimensionName );
 		Dimension dim = getCubesDimension(dimensionName);
 		string tableName = dim.hierarchy[0].name; // table.name;
 		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ dim.name +"].MEMBERS } on columns from ["+ cube +"]\"}";
-		Debug.Log(query);
+		// Debug.Log(query);
 		string url = buildBaseUrl()+"query";
 		using ( var webRequest = CreatePostRequest( url, query) ){
    			yield return webRequest.SendWebRequest();
@@ -245,8 +245,8 @@ public class RequestMgr : MonoBehaviour
    		Dimension dimension = getCubesDimension(axis.dimension);
    		int levelIdx = axis.level; 
    		
-   		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
-   		Debug.Log("retrieve members of: "+ dimension.hierarchy[0].levels[levelIdx].levelName );
+   		//Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
+   		//Debug.Log("retrieve members of: "+ dimension.hierarchy[0].levels[levelIdx].levelName );
    		
    		Level key = dimension.hierarchy[0].levels[levelIdx];
    		if( membersOfLevelCache.ContainsKey( key) ){
@@ -287,7 +287,7 @@ public class RequestMgr : MonoBehaviour
 	
 	public IEnumerator loadCubeConnections( Action<Dictionary < string, string > > callback){
 		string URLString = buildBaseUrl()+"getConnections";
-		Debug.Log("load schema: "+ URLString); 
+		// Debug.Log("load connections: "+ URLString); 
 
 		UnityWebRequest webrequest = CreateGetRequest( URLString );
 		
@@ -318,7 +318,7 @@ public class RequestMgr : MonoBehaviour
     		}
     		
 		string URLString = buildBaseUrl()+"getSchema?connectionName="+ connectionName;
-		Debug.Log("load schema: "+ URLString); 
+		// Debug.Log("load schema: "+ URLString); 
 
 		XmlSerializer serializer = new XmlSerializer(typeof(OLAPSchema));
 
@@ -348,7 +348,7 @@ public class RequestMgr : MonoBehaviour
 		{
 			this.Schema = (OLAPSchema) serializer.Deserialize(reader);
 
-			Debug.Log("schema loaded for "+ URLString); 
+			// Debug.Log("schema loaded for "+ URLString); 
 			return true;
 		}
         }
@@ -373,7 +373,7 @@ public class RequestMgr : MonoBehaviour
         }
         
 	public bool tryConnect(string ip, int port){
-		Debug.Log("try to connect..");
+		// Debug.Log("try to connect..");
 		try{
 			TcpClient socketConnection = new TcpClient( ip , port); 
 			socketConnection.Close();
