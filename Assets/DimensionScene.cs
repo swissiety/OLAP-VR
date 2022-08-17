@@ -29,6 +29,7 @@ public class DimensionScene : MonoBehaviour
 	// load and add data
 	switcher.showLoadingScene(true);
 	List<Dimension> list = await Task.Run( () => { return requests.listDimensions();});
+	List<Measure> mlist = await Task.Run( () => { return requests.listMeasures();});
 	switcher.showLoadingScene(false);
 	
 	// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..
@@ -36,9 +37,7 @@ public class DimensionScene : MonoBehaviour
 	dropdowns[ 0 ].options.Clear ();
 	dropdowns[ 1 ].options.Clear ();
 	dropdowns[ 2 ].options.Clear ();
-	dropdowns[0].value = -1;
-	dropdowns[1].value = -1;
-	dropdowns[2].value = -1;
+	dropdowns[ 3 ].options.Clear ();
 	
 	foreach (Dimension d in list)
 	{
@@ -46,9 +45,23 @@ public class DimensionScene : MonoBehaviour
 		dropdowns[ 1 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
 		dropdowns[ 2 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
 	}
+	dropdowns[0].RefreshShownValue();
+	dropdowns[1].RefreshShownValue();	
+	dropdowns[2].RefreshShownValue();
 
+	string defaultMeasure = requests.getDefaultMeasure();
+	int i = 0;
+	foreach (Measure m in mlist)
+	{
+		dropdowns[ 3 ].options.Add (new TMP_Dropdown.OptionData() {text=m.measureName});
+		if( string.Equals(m.measureName, defaultMeasure) ){
+			dropdowns[ 3 ].value = i;
+		}
+		i++;
+	}
+	dropdowns[3].RefreshShownValue();
 
-	if(!switcher.production){
+	if(!SceneSwitcher.production){
 		StartCoroutine("AutoSelect");
 	}
 
@@ -63,7 +76,14 @@ public class DimensionScene : MonoBehaviour
      	// FIXME: remove in production!
 	dropdowns[0].value = 0;
 	dropdowns[1].value = 4;	
-	dropdowns[2].value = 3;
+	dropdowns[2].value = 3;	
+	
+	dropdowns[3].value = 0;
+	
+	dropdowns[0].RefreshShownValue();
+	dropdowns[1].RefreshShownValue();	
+	dropdowns[2].RefreshShownValue();	
+	dropdowns[3].RefreshShownValue();
 
 	yield return new WaitForSeconds(0.1f);
 
@@ -87,11 +107,12 @@ public class DimensionScene : MonoBehaviour
 		string dd1 = dropdowns[0].options[dropdowns[0].value].text;
 		string dd2 = dropdowns[1].options[dropdowns[1].value].text;
 		string dd3 = dropdowns[2].options[dropdowns[2].value].text;
+		string measure = dropdowns[3].options[dropdowns[3].value].text;
 		
 		Debug.Log("Dimensions ["+dd1+", "+ dd2 + ", "+ dd3 +"] were chosen.");
 		
 		switcher.showLoadingScene(true);    		
-		StartCoroutine(requests.loadDimensions( dd1, dd2, dd3, delegate{nextScreen();} ));
+		StartCoroutine(requests.loadDimensions( measure, dd1, dd2, dd3, delegate{nextScreen();} ));
 		
 	}
 	

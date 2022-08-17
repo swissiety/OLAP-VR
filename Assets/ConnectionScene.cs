@@ -53,7 +53,7 @@ public class ConnectionScene : MonoBehaviour
 	    	*/
 	    	
 	    	    	
-		if(!switcher.production){
+		if(!SceneSwitcher.production){
 			StartCoroutine("AutoSelect");
 		}
 		

@@ -22,12 +22,17 @@ public class ConfigurationScene : MonoBehaviour
   		connectButton.onClick.AddListener(TaskOnClick);
   		// ip.onValueChanged.AddListener(TaskTextChanged);
   		
-  		// remove defaults?
-  		ip.text = "127.0.0.1";
-  		port.text = "8080";
+  		// laod last successful server login if it exists
+  		if(PlayerPrefs.HasKey("connectionIp")){
+  			ip.text = PlayerPrefs.GetString("connectionIp");
+  			port.text = PlayerPrefs.GetString("connectionPort");
+  		}else{
+  			ip.text = "127.0.0.1";
+  			port.text = "8080";
+  		}
   		
-		if(!switcher.production){
-			StartCoroutine("AutoSelect");
+		if(!SceneSwitcher.production){
+			StartCoroutine(AutoSelect());		
 		}
     }
     
@@ -68,6 +73,12 @@ public class ConfigurationScene : MonoBehaviour
 		//connectButton.interactable = successful;
 		
 		if( successful ){
+
+			// remember last successful server login
+			PlayerPrefs.SetString("connectionIp", ip.text.ToString());
+			PlayerPrefs.SetString("connectionPort", port.text.ToString());
+			PlayerPrefs.Save();
+			
 			requests.setServerConnection(ip.text.ToString(), Int32.Parse(port.text.ToString()));
 			switcher.switchTo(1);
 			Debug.Log("connect to "+  ip.text.ToString() + ":"+ port.text.ToString() +" was successful.");
@@ -84,31 +95,4 @@ public class ConfigurationScene : MonoBehaviour
 	    return !string.IsNullOrEmpty(strIP) && IPAddress.TryParse(strIP, out result);
 	}
  
-
- 	// rememeber configuration
- /*
- 	string saveFile = "./config.json";
-    public void readFile()
-    {
-        // Does the file exist?
-        if (File.Exists(saveFile))
-        {
-            // Read the entire file and save its contents.
-            string fileContents = File.ReadAllText(saveFile);
-
-            // Deserialize the JSON data 
-            //  into a pattern matching the GameData class.
-            gameData = JsonUtility.FromJson<GameData>(fileContents);
-        }
-    }
-
-    public void writeFile()
-    {
-        // Serialize the object into JSON and save string.
-        string jsonString = JsonUtility.ToJson(gameData);
-
-        // Write JSON to file.
-        File.WriteAllText(saveFile, jsonString);
-    }
-   */
 }

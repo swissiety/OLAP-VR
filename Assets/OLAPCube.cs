@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using EasyUI.Toast;
 
@@ -37,6 +38,27 @@ public class OLAPCube : MonoBehaviour
     	Debug.Log("olapcube enabled");
     	
     }
+    
+    	void UpdateResults(){
+	
+		Debug.Log("request results");
+		drawTable(null);
+		StartCoroutine( requests.loadValues( cube, OnResult ) );
+	}
+	
+	public void OnResult( ResultSet result ){
+	
+		if( result == null ){
+			Debug.Log("update results failed");
+			return;
+		}
+			
+		Debug.Log("update results");
+		drawTable( result );		
+	
+	} 
+
+    
     
     int maxDescr = 0;
     void UpdateAxis(){
@@ -88,6 +110,7 @@ public class OLAPCube : MonoBehaviour
 		Debug.Log( "x zoom in.");
 		UpdateAxis( axis );
 		UpdateCoordinateSystem();
+		UpdateResults();
 	}else{
 		Toast.Show("I guess x doesn't DrillDown anymore.", 1f);
 	}
@@ -101,6 +124,7 @@ public class OLAPCube : MonoBehaviour
 		Debug.Log( "zoom in.");
 		UpdateAxis(  axis  );
 		UpdateCoordinateSystem();
+		UpdateResults();
 	}else{
 		Toast.Show("I guess "+ cube.getAxisName(axis) +" doesn't RollUp anymore.", 1f);
 	}
@@ -274,7 +298,6 @@ public class OLAPCube : MonoBehaviour
 
 
 
-
     void LeftSwipe()
     {
     		        target.transform.Rotate(0, 90, 0, Space.World);
@@ -282,6 +305,7 @@ public class OLAPCube : MonoBehaviour
 		        cube.PivotLeft();
 		        UpdateAxis( cube.x);
      			UpdateAxis( cube.z);
+     			UpdateResults();
     }
 
     void RightSwipe()
@@ -292,6 +316,7 @@ public class OLAPCube : MonoBehaviour
 			cube.PivotRight();
 		        UpdateAxis(cube.x);
      			UpdateAxis(cube.z);
+     			UpdateResults();
     }
 
     void UpLeftSwipe()
@@ -301,6 +326,7 @@ public class OLAPCube : MonoBehaviour
 		    	cube.PivotUpLeft();
 		        UpdateAxis(cube.x);
      			UpdateAxis(cube.y);
+     			UpdateResults();
    
     }
 
@@ -312,6 +338,7 @@ public class OLAPCube : MonoBehaviour
 		    	cube.PivotUpRight();
 	        	UpdateAxis(cube.y);
 		        UpdateAxis(cube.z);
+		        UpdateResults();
     }
 
     void DownLeftSwipe()
@@ -322,6 +349,7 @@ public class OLAPCube : MonoBehaviour
 			cube.PivotDownLeft();
 		        UpdateAxis(cube.y);
 		        UpdateAxis(cube.z);
+		        UpdateResults();
     }
 
     void DownRightSwipe()
@@ -331,6 +359,7 @@ public class OLAPCube : MonoBehaviour
 		    	cube.PivotDownRight();
      			UpdateAxis(cube.x);
      			UpdateAxis(cube.y);
+     			UpdateResults();
     }
     
 
@@ -368,20 +397,34 @@ public class OLAPCube : MonoBehaviour
     
     
     void drawTable ( ResultSet results ) {
+		
+		
+	// cleanup
+	 foreach (Transform child in tableHolder.transform) {
+     		GameObject.Destroy(child.gameObject);
+	 }
+
          
+         GridLayoutGroup glg = tableHolder.GetComponent<GridLayoutGroup>();
+
+         int colCount;
          if( results == null ){
 	 
-	 	GameObject obj =  GameObject.CreatePrimitive(PrimitiveType.Plane);
-	 	
-	 	TextMeshPro emptyinfo = obj.AddComponent<TextMeshPro>();
-	 	emptyinfo.SetText("Loading.");
-	 	// emptyinfo.alignment = AlignmentTypes.Center;
-//	 	obj.transform.position = tableHolder.transform.position;
+		glg.childAlignment = TextAnchor.MiddleCenter;
+
+	 	GameObject obj =  new GameObject();
+	 	TextMeshProUGUI emptyinfo = obj.AddComponent<TextMeshProUGUI>();
+	 	emptyinfo.SetText("Calculate Results for "+ cube.measure +"..");
+	 	emptyinfo.fontSize = 12;
+	 	emptyinfo.color = Color.black;
  	 	obj.transform.SetParent(tableHolder.transform);
-		obj.transform.position = new Vector3(0.5f, 0.1f, 0);
-	 	
-	 	
+	 	// emptyinfo.alignment = AlignmentTypes.Center;
+
+	 	colCount = 1;
+		
 	 }else{
+
+ 	 	colCount = 1;
 	 	
 	 	float width = 1.0f;
 	 	float height = 1.0f;
@@ -401,6 +444,11 @@ public class OLAPCube : MonoBehaviour
 		 
 		 
          }
+         
+         
+ 	glg.constraintCount = colCount;
+ 	
+ 	
      }
      
     

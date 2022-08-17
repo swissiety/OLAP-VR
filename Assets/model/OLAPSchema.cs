@@ -19,6 +19,20 @@ public class OLAPSchema
 		return dimensions.Find(d => string.Equals(d.name, name) );
 	}
 	
+        public List<Dimension> getCubesDimensions(string cubeName){
+	        // cubes dimensions plus used shared dimensions
+		Cube c = getCube(cubeName);
+		var usedSharedDims = dimensions.FindAll( d => c.dimensionUsages.Find( du => du.name == d.name) != null);
+		usedSharedDims.AddRange(c.dimensions);	       
+	        return usedSharedDims;
+        }
+        
+        public Dimension getCubesDimension( string cubeName, string name){
+	        return getCubesDimensions(cubeName).Find( d => d.name == name );
+        }
+        	
+	
+	
 	[XmlElement("Cube")]
 	public List<Cube> cubes;
 	

@@ -6,10 +6,12 @@ using UnityEngine;
 public class CubeState
 {
 
-	public string Cube;		
 	string host = "";
 	int port = 8080;
 	string connectionName = "";
+
+	public string cubeName;		
+	public string measure = "";
 
 	public AxisState x;
 	public AxisState y;
@@ -54,7 +56,11 @@ public class CubeState
 	
 	
        public string buildQuery(OLAPSchema schema){
-		return "SELECT " + x.buildQuery(schema) +" ON ROWS + " + y.buildQuery(schema) + " ON COLUMNS " ;
+		return "SELECT [Measures].["  + measure + "] ON 0, "
+		 + x.buildQuery(this, schema) +" ON 1, " 
+		 + y.buildQuery(this, schema) +" ON 2, "
+		 + z.buildQuery(this, schema) +" ON 3 "
+		 +" FROM ["+ cubeName +"]";
 	}
 	
 	public void PivotLeft(){
@@ -97,15 +103,21 @@ public class AxisState
 	public int hierarchy = 0;	// just use that for now  i.e. assume there is just one
 	public int level = 0;
 	
-	public int maxLevel = Int32.MaxValue;		// FIXME: set correct value!
+	public int maxLevel = Int32.MaxValue;		// correct value is set after loading
 	
 	
 	// for slice (n dice)
 	public int filterMemberMin = -1;
-	public int filterMemberMax = Int32.MaxValue;		// "unfiltered"
+	public int filterMemberMax = Int32.MaxValue;		// FIXME: "unfiltered"
 	
-	public string buildQuery(OLAPSchema schema){
-		return "" + dimension + " ";
+	public string buildQuery(CubeState cstate, OLAPSchema schema){
+		string q = " [" + dimension + "]";
+		List<Level> levels = schema.getCubesDimension(cstate.cubeName, dimension).hierarchy[0].levels;
+		for(int i = 0; i <= level; i++){
+			q += ".[" + levels[i].levelName + "]";
+		}
+		q += ".MEMBERS";
+		return q;
 	}
 	
 	public bool DrillDown(){

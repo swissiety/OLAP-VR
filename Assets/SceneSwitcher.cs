@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class SceneSwitcher : MonoBehaviour
 {
-	public bool production = true;
+
+	static public bool production = false;
 
 
 	public GameObject[] scenes; 
@@ -16,7 +17,7 @@ public class SceneSwitcher : MonoBehaviour
 	int currentSceneIdx = 0;
 	
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
     	/*
     	foreach( var scene in scenes){

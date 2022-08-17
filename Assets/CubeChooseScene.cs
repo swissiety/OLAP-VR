@@ -44,7 +44,7 @@ public class CubeChooseScene : MonoBehaviour
 	    	}
 	    	*/
 	    	
-	    	if(!switcher.production){
+	    	if(!SceneSwitcher.production){
 			StartCoroutine("AutoSelect");
 		}
     }

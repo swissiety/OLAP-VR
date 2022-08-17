@@ -84,6 +84,7 @@ public class RequestMgr : MonoBehaviour
 	public string x = "";
 	public string y = "";
 	public string z = "";
+	public string measure = "";
 
 	// cache the retrieved datamodel
 	OLAPSchema Schema = null;
@@ -91,6 +92,9 @@ public class RequestMgr : MonoBehaviour
 	
 	public CubeState getCubeState(){
 		CubeState c = new CubeState();
+		c.cubeName = cube;
+		c.measure = measure;
+		
 		c.x = new AxisState();
 		c.x.dimension = x;
 		c.y = new AxisState();
@@ -102,7 +106,7 @@ public class RequestMgr : MonoBehaviour
 	
 	
 	public void SetCube(string cubename){
-		this.cube =cubename;
+		this.cube = cubename;
 	}
 	
 	public void setServerConnection(string ip, int port){
@@ -135,19 +139,27 @@ public class RequestMgr : MonoBehaviour
 	public IEnumerator loadValues( CubeState cube, Action<ResultSet> callback){
 		string url = buildBaseUrl()+"query";
 		
+		// SELECT [Measures].[Store Invoice] ON 0,  [Time].[Quarter].MEMBERS ON 1,  [Product].[Product Family].MEMBERS  ON 2,  [Store].[Store Country.MEMBERS] ON 3  FROM [Warehouse]
+		
 		string query = cube.buildQuery(Schema);
-		string queryStr = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : "+ query ;
+		string queryStr = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \""+ query +"\"}";
 		Debug.Log(query);
 		
 		using ( var webRequest = CreatePostRequest( url, queryStr) ){
    			yield return webRequest.SendWebRequest();
-	   		callback(JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text));
+   			
+   			if( webRequest.error != null ){
+				Debug.Log(webRequest.downloadHandler.text);
+   			}
+   			
+	   		var res = JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text);
+	   		callback( res );
    		}
 	}
 	
 	
 	
-	public IEnumerator loadDimension(string dimensionName){
+	protected IEnumerator loadDimension(string dimensionName){
 		loadSchema();
 		
 		// Dimension.hierarchy.table.name
@@ -204,12 +216,14 @@ public class RequestMgr : MonoBehaviour
 	}
 	
 	
-	public IEnumerator loadDimensions(string x, string  y, string  z, Action callback){
+	public IEnumerator loadDimensions(string measure, string x, string  y, string  z, Action callback){
 		loadSchema();
 		
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		
+		this.measure = measure;
 			
 		yield return loadDimension(x);
 		yield return loadDimension(y);
@@ -343,15 +357,20 @@ public class RequestMgr : MonoBehaviour
 	        loadSchema();
 		
 		// cubes dimensions plus used shared dimensions
-		var usedSharedDims = Schema.dimensions.FindAll( d => Schema.getCube(cube).dimensionUsages.Find( du => du.name == d.name) != null);
-		usedSharedDims.AddRange(Schema.getCube(cube).dimensions);	       
-	        return usedSharedDims;
+		return Schema.getCubesDimensions(cube);
         }
         
         public Dimension getCubesDimension( string name){
 	        return listDimensions().Find( d => d.name == name );
         }
         
+        public List<Measure> listMeasures(){
+        	return Schema.getCube(cube).measures;
+        }
+        
+        public string getDefaultMeasure(){
+        	return Schema.getCube(cube).defaultMeasure;
+        }
         
 	public bool tryConnect(string ip, int port){
 		Debug.Log("try to connect..");
