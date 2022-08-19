@@ -57,6 +57,13 @@ public class SceneSwitcher : MonoBehaviour
     	}
     }
     
+    void prevScreen(){
+        if(loading){
+		showLoadingScene(false);
+	}
+    	switchTo(  currentSceneIdx-1 );
+    }
+    
     
     int shots = 0;
     void Update()
@@ -71,10 +78,10 @@ public class SceneSwitcher : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-        	if(loading){
-        		showLoadingScene(false);
-        	}
-        	switchTo(0);
+
+        	prevScreen();
+        	SceneSwitcher.production = true;
+        	
         }
     }
 }   

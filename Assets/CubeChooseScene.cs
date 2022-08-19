@@ -29,7 +29,9 @@ public class CubeChooseScene : MonoBehaviour
 	    		return;
 	    	}
 	    	
+		dropdown.value = 0;	
 		dropdown.options.Clear();
+
 		dropdown.options.Add (new TMP_Dropdown.OptionData() {text=""});
 		foreach (Cube c in schema.cubes)
 		{

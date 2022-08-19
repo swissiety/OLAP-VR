@@ -212,7 +212,7 @@ public class RequestMgr : MonoBehaviour
 
 	
 	public int GetMaxLevelDepth(string dimensionName){
-		return getCubesDimension(dimensionName).hierarchy[0].levels.Count;
+		return getCubesDimension(dimensionName).hierarchy[0].levels.Count -1;
 	}
 	
 	
@@ -245,7 +245,7 @@ public class RequestMgr : MonoBehaviour
    		Dimension dimension = getCubesDimension(axis.dimension);
    		int levelIdx = axis.level; 
    		
-   		//Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
+   		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
    		//Debug.Log("retrieve members of: "+ dimension.hierarchy[0].levels[levelIdx].levelName );
    		
    		Level key = dimension.hierarchy[0].levels[levelIdx];

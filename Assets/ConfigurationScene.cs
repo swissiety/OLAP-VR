@@ -17,7 +17,7 @@ public class ConfigurationScene : MonoBehaviour
   	public RequestMgr requests;
 
 
-  	void Start(){
+  	void OnEnable(){
   		// connectButton.interactable = false;
   		connectButton.onClick.AddListener(TaskOnClick);
   		// ip.onValueChanged.AddListener(TaskTextChanged);

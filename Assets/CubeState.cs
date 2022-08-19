@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public class CubeState
 {
-	public string cubeName;		
+	public string cubeName = "";		
 	public string measure = "";
 
 	public AxisState x;
@@ -21,10 +21,13 @@ public class CubeState
 		
 		c.x = new AxisState();
 		c.x.dimension = x.dimension;
+		c.x.level = x.level;
 		c.y = new AxisState();
 		c.y.dimension = y.dimension;
+		c.y.level = y.level;
 		c.z = new AxisState();
 		c.z.dimension = z.dimension;
+		c.z.level = z.level;
 		return c;
 	     }
 	
@@ -65,15 +68,6 @@ public class CubeState
 		throw new Exception();
 	}
 	
-	
-       public string buildQuery(OLAPSchema schema){
-		return "SELECT [Measures].["  + measure + "] ON 0, "
-		 + x.buildQuery(this, schema) +" ON 1, " 
-		 + y.buildQuery(this, schema) +" ON 2, "
-		 + z.buildQuery(this, schema) +" ON 3 "
-		 +" FROM ["+ cubeName +"]";
-	}
-	
 	public void PivotLeft(){
 		Swap(ref x, ref z);
 	}
@@ -105,6 +99,24 @@ public class CubeState
 	     x = t;
     }
 	
+       public string buildQuery(OLAPSchema schema){
+		return "SELECT "
+		 + " "+x.buildQuery(this, schema) +" ON 1, " 
+		 + " "+y.buildQuery(this, schema) +" ON 2, "
+		 + " "+z.buildQuery(this, schema) +" ON 3 "
+		 +" FROM ["+ cubeName +"]" 
+		 + "WHERE [Measures].["  + measure + "] ";
+		
+		/*
+		return "SELECT "
+		 + "NON EMPTY "+x.buildQuery(this, schema) +" ON 0, " 
+		 + "NON EMPTY "+y.buildQuery(this, schema) +" *  "
+		 + " "+z.buildQuery(this, schema) +" ON 1 "
+		 +" FROM ["+ cubeName +"]"
+		 + "WHERE [Measures].["  + measure + "] ";*/		 
+		 
+	}
+	
 }
 
 [Serializable]
@@ -122,7 +134,7 @@ public class AxisState
 	public int filterMemberMax = Int32.MaxValue;		// FIXME: "unfiltered"
 	
 	public string buildQuery(CubeState cstate, OLAPSchema schema){
-		string q = "NON EMPTY [" + dimension + "]";
+		string q = " [" + dimension + "]";
 		List<Level> levels = schema.getCubesDimension(cstate.cubeName, dimension).hierarchy[0].levels;
 		for(int i = 0; i <= level; i++){
 			q += ".[" + levels[i].levelName + "]";

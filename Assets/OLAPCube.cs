@@ -49,7 +49,6 @@ public class OLAPCube : MonoBehaviour
 	    	target.transform.rotation = Quaternion.identity; 
 	    	
 	    	UpdateAxis();
-		UpdateCoordinateSystem();
 		
 		cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension );
 		cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
@@ -86,19 +85,24 @@ public class OLAPCube : MonoBehaviour
 
 
 	void OnUndoButtonClick(){
-		if( undoStack.Count >= 2){
+		if( undoStack.Count > 1){
 
 			// remove the current state - (first) state gets pushed back after initCubeState
 			undoStack.Pop();
-			initCubeState(undoStack.Pop());
-
-			if( undoStack.Count == 0){
+			var newState = undoStack.Pop();
+					
+			if( undoStack.Count < 2){
 				undoButton.interactable = false;
 			}
+			initCubeState(newState);
+
 			Debug.Log("undo");
+			Toast.Show("undo.", 0.5f, ToastPosition.BottomRight);
+
 		}else{
-			Debug.Log("nothing to undo");
+			Debug.Log("nothing to undo "+ undoStack.Count);
 		}
+			Debug.Log("undostacksize "+ undoStack.Count);
 
 	}
 
@@ -124,14 +128,21 @@ public class OLAPCube : MonoBehaviour
 	
 	maxDescr = Mathf.Max( requests.listMembersOfLevel( cube.x ).Count, Mathf.Max(requests.listMembersOfLevel( cube.y ).Count, requests.listMembersOfLevel( cube.z ).Count));
 
-	axisScript.UpdateAxis( requests.getDimensionTitle(axisMapping), member, maxDescr);
+	string title;
+	if(axisState.level > 0){
+		title = requests.getCubesDimension(axisState.dimension).hierarchy[0].levels[axisState.level].levelName;
+	}else{
+		title = requests.getDimensionTitle(axisMapping);
+	}
+
+	axisScript.UpdateAxis( title, member, maxDescr);
     }
     
     void UpdateCoordinateSystem(){
         UpdateCubeSize();
  	
     	float maxDim = (maxDescr) * 1.1f;
-	float scale = 8;
+	float scale = 4;
 	
 	transform.localPosition = new Vector3(0 , 0, 0 );
 	transform.localScale = new Vector3(maxDim/scale*2.0f , maxDim/scale *2.0f, maxDim/scale*2.0f );

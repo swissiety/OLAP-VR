@@ -34,10 +34,16 @@ public class DimensionScene : MonoBehaviour
 	
 	// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..
 
+	dropdowns[0].value = 0;
+	dropdowns[1].value = 0;	
+	dropdowns[2].value = 0;	
+	dropdowns[3].value = 0;	
+	
 	dropdowns[ 0 ].options.Clear ();
 	dropdowns[ 1 ].options.Clear ();
 	dropdowns[ 2 ].options.Clear ();
 	dropdowns[ 3 ].options.Clear ();
+	
 	
 	foreach (Dimension d in list)
 	{

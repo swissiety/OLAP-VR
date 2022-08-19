@@ -37,6 +37,7 @@ public class ConnectionScene : MonoBehaviour
 	    		return;
 	    	}
 	    	
+		dropdown.value = 0;	
 		dropdown.options.Clear();
 		dropdown.options.Add (new TMP_Dropdown.OptionData() {text=""});
 		foreach (KeyValuePair < string, string > conn in connections)
