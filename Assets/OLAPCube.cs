@@ -22,10 +22,13 @@ public class OLAPCube : MonoBehaviour
      	public GameObject[] axis;
      
      	private CubeState cube;      	
-	private GameObject[,,] grid = new GameObject[0,0,0];
+	private GameObject[,,] grid = new GameObject[1,1,1];
 	
 	Stack<CubeState> undoStack = new Stack<CubeState>();
 	
+	bool isSliceMode = false;
+	    int maxDescr = 0;
+
 	
     void Awake(){
     
@@ -35,30 +38,40 @@ public class OLAPCube : MonoBehaviour
 	
     void OnEnable()
     {	
-    		
-    	initCubeState(requests.getCubeState());
+    	grid[0,0,0] = transform.Find("Cube").gameObject;
+    	StartCoroutine(onLoadCube(requests.getCubeState()));
     	
     }
+
+	IEnumerator onLoadCube( CubeState cs){
+		// hacky: wait until gameobjects are resolved
+		yield return new WaitForSeconds(0.5f);
+		initCubeState(cs);
+	}
     
 	public void initCubeState( CubeState cs ){
-	
+		
 		cube = cs;
 	    	
 	    	// reset target
-	    	transform.rotation = Quaternion.identity; 
-	    	target.transform.rotation = Quaternion.identity; 
+	    	transform.localRotation = Quaternion.identity; // chartHolder.transform.rotation;
+	    	target.transform.localRotation = Quaternion.identity; // chartHolder.transform.rotation; 
 	    	
-	    	UpdateAxis();
-		
+	    	maxDescr = Mathf.Max( requests.listMembersOfLevel( cube.x ).Count, Mathf.Max(requests.listMembersOfLevel( cube.y ).Count, requests.listMembersOfLevel( cube.z ).Count));
+	    	
 		cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension );
 		cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
 		cube.z.maxLevel = requests.GetMaxLevelDepth( cube.z.dimension);
+
+	    	UpdateAxes();
 		
 		measureText.SetText( cube.measure );		
 		UpdateResults();
 	
 	}
 	
+	
+	Coroutine queryExecRoutine = null;
 	void UpdateResults(){
 	
 		undoStack.Push( cube.Clone() );
@@ -68,11 +81,16 @@ public class OLAPCube : MonoBehaviour
 	
 		Debug.Log("request results");
 		drawTable(null);
-		StartCoroutine( requests.loadValues( cube, OnResult ) );
+		
+		if(queryExecRoutine != null){
+			StopCoroutine(queryExecRoutine);
+		}
+		// FIXME queryExecRoutine = StartCoroutine( requests.loadValues( cube, OnResult ) );
 	}
 	
 	public void OnResult( ResultSet result ){
-	
+		queryExecRoutine = null;
+		
 		if( result == null ){
 			Debug.Log("update results failed");
 			return;
@@ -102,14 +120,14 @@ public class OLAPCube : MonoBehaviour
 		}else{
 			Debug.Log("nothing to undo "+ undoStack.Count);
 		}
-			Debug.Log("undostacksize "+ undoStack.Count);
+		
+		Debug.Log("undostacksize "+ undoStack.Count);
 
 	}
 
     
     
-    int maxDescr = 0;
-    void UpdateAxis(){
+    void UpdateAxes(){
 	  UpdateAxis( cube.x );
 	  UpdateAxis( cube.y );
 	  UpdateAxis( cube.z );
@@ -126,37 +144,17 @@ public class OLAPCube : MonoBehaviour
 	List<string> member = requests.listMembersOfLevel(axisState );
 	ChartAxis axisScript = (ChartAxis) axis[ axisIdx].GetComponent(typeof(ChartAxis));
 	
-	maxDescr = Mathf.Max( requests.listMembersOfLevel( cube.x ).Count, Mathf.Max(requests.listMembersOfLevel( cube.y ).Count, requests.listMembersOfLevel( cube.z ).Count));
-
 	string title;
 	if(axisState.level > 0){
 		title = requests.getCubesDimension(axisState.dimension).hierarchy[0].levels[axisState.level].levelName;
 	}else{
 		title = requests.getDimensionTitle(axisMapping);
 	}
-
+	
+	Debug.Log( "maxdescr"+ maxDescr );
 	axisScript.UpdateAxis( title, member, maxDescr);
     }
     
-    void UpdateCoordinateSystem(){
-        UpdateCubeSize();
- 	
-    	float maxDim = (maxDescr) * 1.1f;
-	float scale = 4;
-	
-	transform.localPosition = new Vector3(0 , 0, 0 );
-	transform.localScale = new Vector3(maxDim/scale*2.0f , maxDim/scale *2.0f, maxDim/scale*2.0f );
-
-	maxDim += 2;	
-	// center & scale chartholder
-	chartHolder.transform.localPosition = new Vector3(2+-maxDim/2  , 2+-maxDim/2, 2-maxDim/2 );
-	chartHolder.transform.localScale = new Vector3(maxDim/scale , maxDim/scale, maxDim/scale );
-
-	target.transform.localPosition = transform.localPosition;
-	target.transform.localScale = transform.localScale;
-
-    }
-
     
     
     public void zoomIn( int idx){
@@ -188,8 +186,8 @@ public class OLAPCube : MonoBehaviour
 
     
         
-    
-    public void UpdateCubeSize( ){
+    Color cellCol =  new Color(0.246f, 0.059f, 0.106f, 1.000f);
+    public void UpdateCoordinateSystem( ){
 	
 	var xMember = requests.listMembersOfLevel( cube.x );
     	var yMember = requests.listMembersOfLevel( cube.y );
@@ -212,9 +210,16 @@ public class OLAPCube : MonoBehaviour
 	
         grid = new GameObject[xH,yH,zH];
 	
-    	float xHeight = (xH-1)*1.1f/2;
-    	float yHeight = (yH-1)*1.1f/2;
-    	float zHeight = (zH-1)*1.1f/2;
+    	
+	float scale = 8;	    	
+    	float spacing = 1.5f;
+        float maxDim = maxDescr*spacing;
+
+    	float xHeight = (xH-1)*spacing/2;
+    	float yHeight = (yH-1)*spacing/2;
+    	float zHeight = (zH-1)*spacing/2;
+
+	
 	for(int x = 0; x < xH; x++){
 	
 		
@@ -223,10 +228,11 @@ public class OLAPCube : MonoBehaviour
 			for(int z = 0; z < zH; z++){
 			
 				// Instantiate at position, rotation.
-				GameObject cube = Instantiate(myPrefab, new Vector3(transform.position.x+x*1.2f-xHeight, transform.position.y+y*1.2f-yHeight, transform.position.z+z*1.2f-zHeight), Quaternion.identity);
+				GameObject cube = Instantiate(myPrefab, new Vector3(transform.position.x+x*spacing-xHeight, transform.position.y+y*spacing-yHeight, transform.position.z+z*spacing-zHeight), Quaternion.identity);
 				 
-				cube.GetComponent<Renderer>().material.color = new Color(0.246f, 0.059f, 0.106f, 1.000f);
+				cube.GetComponent<Renderer>().material.color = cellCol;
 				cube.transform.SetParent(transform);
+				cube.transform.rotation = Quaternion.identity;
  
 				cube.name = "cell_"+x +"_"+ y +"_"+ z;
 				cube.transform.localScale = new Vector3(1,1,1);
@@ -235,6 +241,15 @@ public class OLAPCube : MonoBehaviour
 			}		
 		}
 	}
+       
+        
+	
+	// transform.localPosition = new Vector3( -maxDim/2 , -maxDim/2, -maxDim/2  );
+	transform.localScale = new Vector3(scale/maxDim , scale/maxDim, scale/maxDim );
+
+	// target.transform.localPosition = transform.localPosition;
+	target.transform.localScale = transform.localScale;
+
        
     }
     
@@ -264,10 +279,14 @@ public class OLAPCube : MonoBehaviour
 	      if(Physics.Raycast(ray,out hit)){
 		   if(hit.collider.gameObject == axis[0]){
 		   }else if(hit.collider.gameObject == axis[1]){
-		   } else if(hit.collider.gameObject == axis[2]){
+		   }else if(hit.collider.gameObject == axis[2]){
 		   }else{
-		   	firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-		   	dragRotate = true;
+		   	if( isSliceMode ){
+		   	
+		   	}else{
+			   	firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+			   	dragRotate = true;
+		   	}
 		   }
 	      }else{
 	           firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
@@ -345,7 +364,7 @@ public class OLAPCube : MonoBehaviour
 		    }
 	      }else{
 	      		// reset
-	      		Debug.Log("RESET swipe");
+	      		// Debug.Log("RESET swipe");
 	      		target.transform.Rotate(0, 0, 0, Space.World);	
 	      }
         }
@@ -379,37 +398,38 @@ public class OLAPCube : MonoBehaviour
      		        target.transform.Rotate(90, 0, 0, Space.World);
 		    	Debug.Log("upLeft");
 		    	cube.PivotUpLeft();
-		        UpdateAxis(cube.x);
+		        UpdateAxis(cube.z);
      			UpdateAxis(cube.y);
      			UpdateResults();
    
     }
 
-    void UpRightSwipe()
-    {
-    
-		        target.transform.Rotate(0, 0, -90, Space.World);
-		    	Debug.Log("upRight");
-		    	cube.PivotUpRight();
-	        	UpdateAxis(cube.y);
-		        UpdateAxis(cube.z);
-		        UpdateResults();
-    }
 
     void DownLeftSwipe()
     {
     
-		     	 target.transform.Rotate(0, 0, 90, Space.World);
+		     	target.transform.Rotate(-90, 0, 0, Space.World);
 		    	Debug.Log("downLeft");
 			cube.PivotDownLeft();
 		        UpdateAxis(cube.y);
 		        UpdateAxis(cube.z);
 		        UpdateResults();
     }
+    
+    void UpRightSwipe()
+    {
+    
+		        target.transform.Rotate(0, 0, 90, Space.World);
+		    	Debug.Log("upRight");
+		    	cube.PivotUpRight();
+	        	UpdateAxis(cube.x);
+		        UpdateAxis(cube.y);
+		        UpdateResults();
+    }
 
     void DownRightSwipe()
     {
-    		        target.transform.Rotate(-90, 0, 0, Space.World);
+    		        target.transform.Rotate(0, 0, -90, Space.World);
 		    	Debug.Log("downRight");
 		    	cube.PivotDownRight();
      			UpdateAxis(cube.x);
@@ -479,10 +499,26 @@ public class OLAPCube : MonoBehaviour
 		
 	 }else{
 
- 	 	colCount = 1;
+ 	 	colCount = results.getAxis("COLUMNS").positions.GetLength(0);
 	 	
 	 	float width = 1.0f;
 	 	float height = 1.0f;
+
+	
+	 	colCount = 1;
+
+		foreach( ResultCell cell in results.cells ){
+			
+			GameObject obj =  new GameObject();
+		 	TextMeshProUGUI tcell = obj.AddComponent<TextMeshProUGUI>();
+		 	tcell.SetText( cell.ordinal + " => "+ cell.formattedValue);
+		 	tcell.fontSize = 10;
+		 	tcell.color = Color.black;
+	 	 	tcell.transform.SetParent(tableHolder.transform);
+		 	// emptyinfo.alignment = AlignmentTypes.Center;
+
+		}
+
 /*
 		// FIXME: incorporate texts
 		 

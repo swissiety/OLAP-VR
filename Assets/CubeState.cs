@@ -77,17 +77,17 @@ public class CubeState
 	}
 	
 	public void PivotUpLeft(){
-		Swap(ref x, ref y);
+		Swap(ref z, ref y);
 	}
-	
-	public void PivotUpRight(){
-		Swap(ref y, ref z);
-	}
-	
+		
 	public void PivotDownLeft(){
 		Swap(ref y, ref z);
 	}
 	
+	public void PivotUpRight(){
+		Swap(ref y, ref x);
+	}
+
 	public void PivotDownRight(){
 		Swap( ref x, ref y);
 	}	
@@ -101,9 +101,9 @@ public class CubeState
 	
        public string buildQuery(OLAPSchema schema){
 		return "SELECT "
-		 + " "+x.buildQuery(this, schema) +" ON 1, " 
-		 + " "+y.buildQuery(this, schema) +" ON 2, "
-		 + " "+z.buildQuery(this, schema) +" ON 3 "
+		 + " "+x.buildQuery(this, schema) +" ON 0, " 
+		 + " "+y.buildQuery(this, schema) +" ON 1, "
+		 + " "+z.buildQuery(this, schema) +" ON 2 "
 		 +" FROM ["+ cubeName +"]" 
 		 + "WHERE [Measures].["  + measure + "] ";
 		
@@ -136,11 +136,12 @@ public class AxisState
 	public string buildQuery(CubeState cstate, OLAPSchema schema){
 		string q = " [" + dimension + "]";
 		List<Level> levels = schema.getCubesDimension(cstate.cubeName, dimension).hierarchy[0].levels;
-		for(int i = 0; i <= level; i++){
+		for(int i = 0; i < level; i++){
 			q += ".[" + levels[i].levelName + "]";
 		}
-		q += ".MEMBERS";
-		
+		if( level < maxLevel){
+			q += ".MEMBERS";
+		}
 		// for slicing add sth like: HAVING [Measures].[Internet Sales Amount]>15000  
 		
 		return q;

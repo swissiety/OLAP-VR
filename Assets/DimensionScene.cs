@@ -15,62 +15,67 @@ public class DimensionScene : MonoBehaviour
  	public TMP_Dropdown[] dropdowns;
  	public RequestMgr requests;
 
- 
+ 	string chosenCube = "";
  
     // Start is called before the first frame update
     async void OnEnable()
     {
-    
-    	// title	
-    	connectionText.text = "Cube '"+requests.cube+"'";
-    
+    	    	    
         chooseButton.onClick.AddListener(TaskOnClick);
+
 
 	// load and add data
 	switcher.showLoadingScene(true);
 	List<Dimension> list = await Task.Run( () => { return requests.listDimensions();});
 	List<Measure> mlist = await Task.Run( () => { return requests.listMeasures();});
 	switcher.showLoadingScene(false);
-	
-	// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..
 
-	dropdowns[0].value = 0;
-	dropdowns[1].value = 0;	
-	dropdowns[2].value = 0;	
-	dropdowns[3].value = 0;	
-	
-	dropdowns[ 0 ].options.Clear ();
-	dropdowns[ 1 ].options.Clear ();
-	dropdowns[ 2 ].options.Clear ();
-	dropdowns[ 3 ].options.Clear ();
-	
-	
-	foreach (Dimension d in list)
-	{
-		dropdowns[ 0 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
-		dropdowns[ 1 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
-		dropdowns[ 2 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
-	}
-	dropdowns[0].RefreshShownValue();
-	dropdowns[1].RefreshShownValue();	
-	dropdowns[2].RefreshShownValue();
-
-	string defaultMeasure = requests.getDefaultMeasure();
-	int i = 0;
-	foreach (Measure m in mlist)
-	{
-		dropdowns[ 3 ].options.Add (new TMP_Dropdown.OptionData() {text=m.measureName});
-		if( string.Equals(m.measureName, defaultMeasure) ){
-			dropdowns[ 3 ].value = i;
+	if(!string.Equals(chosenCube, requests.cube) ){
+		
+		// hint: these are only shared dimensions - cube specific dimensions are not retrieved that way..	
+		dropdowns[0].value = 0;
+		dropdowns[1].value = 1;	
+		dropdowns[2].value = 2;
+			
+		dropdowns[3].value = 0;	
+		
+		dropdowns[ 0 ].options.Clear ();
+		dropdowns[ 1 ].options.Clear ();
+		dropdowns[ 2 ].options.Clear ();
+		dropdowns[ 3 ].options.Clear ();
+		
+		foreach (Dimension d in list)
+		{
+			dropdowns[ 0 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
+			dropdowns[ 1 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
+			dropdowns[ 2 ].options.Add (new TMP_Dropdown.OptionData() {text=d.name});
 		}
-		i++;
+		dropdowns[0].RefreshShownValue();
+		dropdowns[1].RefreshShownValue();	
+		dropdowns[2].RefreshShownValue();
+
+		string defaultMeasure = requests.getDefaultMeasure();
+		int i = 0;
+		foreach (Measure m in mlist)
+		{
+			dropdowns[ 3 ].options.Add (new TMP_Dropdown.OptionData() {text=m.measureName});
+			if( string.Equals(m.measureName, defaultMeasure) ){
+				dropdowns[ 3 ].value = i;
+			}
+			i++;
+		}
+		dropdowns[3].RefreshShownValue();
+
 	}
-	dropdowns[3].RefreshShownValue();
+	
+    	chosenCube = requests.cube;
+    	// title	
+    	connectionText.text = "Cube '"+chosenCube+"'";
 
 	if(!SceneSwitcher.production){
 		StartCoroutine("AutoSelect");
 	}
-
+	
     }
     
     void OnDisable(){

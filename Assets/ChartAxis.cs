@@ -9,13 +9,12 @@ public class ChartAxis : MonoBehaviour
 
 	public GameObject olapcube;
 	public GameObject myPrefab; 
-	 GameObject[] axisDescr; 
-	 private int axisType = 0;
+	 GameObject[] axisDescr = new GameObject[0]; 
+	 private int axisType = -1;
 
     // Start is called before the first frame update
     void Awake()
     {
-	axisDescr = new GameObject[0];
 	axisType = name[0]-'x';
     }
     
@@ -26,6 +25,12 @@ public class ChartAxis : MonoBehaviour
         m_Renderer = GetComponent<Renderer>();
 	oldColor = m_Renderer.material.color; 
     }
+
+	void OnEnable(){
+		if( ctitle != null ){
+			UpdateAxis(ctitle, ccellDescriptions, cmaxDimension);
+		}
+	}
 
 
 
@@ -82,8 +87,18 @@ public class ChartAxis : MonoBehaviour
 
 
 
+	string ctitle;
+	List<string> ccellDescriptions;
+	 int cmaxDimension;
     public void UpdateAxis(string title, List<string> cellDescriptions, int maxDimension){
-        	
+        // could not been enabled when already called from cube	
+        if(axisType < 0){
+        	ctitle = title;
+        	cellDescriptions = ccellDescriptions;
+        	cmaxDimension = maxDimension;
+        	return; 
+        }
+        
     	// cleanup
           for(int i = 0; i < axisDescr.GetLength(0); i++) {
                 Destroy(axisDescr[i]);
@@ -93,7 +108,7 @@ public class ChartAxis : MonoBehaviour
 	// draw axis title
 	name = "axis_"+ title;
     	    
-	TMP_Text[] t = GetComponentsInChildren<TMP_Text>();
+	TMP_Text[] t = transform.parent.GetComponentsInChildren<TMP_Text>();
 	t[0].SetText(title);
 	
 	// draw texts of cells
@@ -103,7 +118,7 @@ public class ChartAxis : MonoBehaviour
 	
 	// find holder
 	Transform descrHolder = null;
-	foreach (Transform child in transform)
+	foreach (Transform child in transform.parent.transform)
         {
             if(string.Equals(child.name, "cellDescrHolder")){
 		descrHolder = child;
@@ -111,18 +126,24 @@ public class ChartAxis : MonoBehaviour
             }
         }
         
+        if(descrHolder == null){
+        	throw new UnityException("no holder found.");
+        }
+        
         // hint: adjust holder position -> max preferredWidth <-> avoid text overlap with long members names and axis 
 
 	int y = 0;
 	foreach( string cellDescrStr in cellDescriptions ){
 		// Instantiate at position, rotation
-		axisDescr[y] = Instantiate(myPrefab, descrHolder, false);
+		GameObject ad = Instantiate(myPrefab, descrHolder, false);
+		axisDescr[y] = ad;
+
 		//cube.GetComponent<Renderer>().material.color = Random.ColorHSV();
 		// 
 		
-		axisDescr[y].transform.localScale = new Vector3(0.5f, 0.05f, 0.25f );
-		axisDescr[y].transform.rotation = descrHolder.rotation;
-		axisDescr[y].name = "descr_"+cellDescrStr;
+		ad.transform.localScale = new Vector3(0.5f, 0.05f, 0.25f );
+		ad.transform.rotation = descrHolder.rotation;
+		ad.name = "descr_"+cellDescrStr;
 		
 		TMP_Text[] descrText = axisDescr[y].GetComponentsInChildren<TMP_Text>();
 		descrText[0].SetText(cellDescrStr);
@@ -138,14 +159,15 @@ public class ChartAxis : MonoBehaviour
 		
 		if(axisType == 0 ){
 			// x
-			translateV = new Vector3(-maxDimension*1.1f , i*1.1f-height/2, 0);			
+			translateV = new Vector3( 0 , i*1.1f-height/2, 0);			
 		}else if( axisType == 1 ){
-			translateV = new Vector3(1-maxDimension*1.1f/2, i*1.1f-height, 0 );
+			translateV = new Vector3( 0, i*1.1f-height/2, 0 );
 		}else{
-			translateV = new Vector3( 1+maxDimension*1.1f/2 , i*1.1f-height/2, 0);
+			translateV = new Vector3( 0 , i*1.1f-height/2, 0);
 		}
 
 		axisDescr[i].transform.position = descrHolder.position + descrHolder.rotation * translateV;
+
 	}
 	
 	

@@ -171,11 +171,10 @@ public class RequestMgr : MonoBehaviour
 		string url = buildBaseUrl()+"query";
 		using ( var webRequest = CreatePostRequest( url, query) ){
    			yield return webRequest.SendWebRequest();
-	   		// Debug.Log( webRequest.downloadHandler.text );
+	   		Debug.Log( webRequest.downloadHandler.text );
 	   		ResultSet resultSet = JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text);
 	   		
 	   		
-   			
    			Debug.Log( "cells"+ resultSet.cells.GetLength(0) +  " axes"+ resultSet.axes.GetLength(0) );
 			ResultAxis axis = resultSet.getAxis("COLUMNS");
 			
@@ -194,7 +193,7 @@ public class RequestMgr : MonoBehaviour
 				do{
 					int levelIdx;
 					if( levelMap.ContainsKey(posMember.memberLevelCaption) ){
-						levelIdx = levelMap[posMember.memberLevelCaption]	;				
+						levelIdx = levelMap[posMember.memberLevelCaption];				
 					}else{
 						levelIdx = 0;
 					}
@@ -245,7 +244,6 @@ public class RequestMgr : MonoBehaviour
    		Dimension dimension = getCubesDimension(axis.dimension);
    		int levelIdx = axis.level; 
    		
-   		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );
    		//Debug.Log("retrieve members of: "+ dimension.hierarchy[0].levels[levelIdx].levelName );
    		
    		Level key = dimension.hierarchy[0].levels[levelIdx];
@@ -253,9 +251,9 @@ public class RequestMgr : MonoBehaviour
    			// Debug.Log("members: " + membersOfLevelCache[ key ] + " " + membersOfLevelCache[ key ][0] );
    			return membersOfLevelCache[ key ];
    		}
-
-   		// throw new Exception("There is no data for that dimension/level");
-   		return new List<string>(){"No Data."};
+   		
+   		Debug.Log("dim "+ dimension + " lvl "+ levelIdx );   		
+   		throw new Exception("There is no data for that dimension/level "+  dimension.hierarchy[0].levels[levelIdx] + " levelidx: "+ levelIdx );
    	}
    	
    	public string getDimensionTitle( string dimensionName ){
@@ -344,12 +342,19 @@ public class RequestMgr : MonoBehaviour
 
 			*/	
 		
-		using (XmlTextReader reader = new XmlTextReader (URLString))
-		{
-			this.Schema = (OLAPSchema) serializer.Deserialize(reader);
+		try{
+			using (XmlTextReader reader = new XmlTextReader (URLString))
+			{
+				this.Schema = (OLAPSchema) serializer.Deserialize(reader);
 
-			// Debug.Log("schema loaded for "+ URLString); 
-			return true;
+				// Debug.Log("schema loaded for "+ URLString); 
+				return true;
+			}
+			
+		}catch(Exception e){
+			Debug.Log(URLString);
+			Debug.Log(e);
+			return false;
 		}
         }
         
