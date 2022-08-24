@@ -130,8 +130,7 @@ public class AxisState
 	
 	
 	// for slice (n dice)
-	public int filterMemberMin = -1;
-	public int filterMemberMax = Int32.MaxValue;		// FIXME: "unfiltered"
+	public HashSet<int> wantedMembers = new HashSet<int>();
 	
 	public string buildQuery(CubeState cstate, OLAPSchema schema){
 		string q = " [" + dimension + "]";
@@ -142,7 +141,18 @@ public class AxisState
 		if( level < maxLevel){
 			q += ".MEMBERS";
 		}
-		// for slicing add sth like: HAVING [Measures].[Internet Sales Amount]>15000  
+		
+		
+		
+		/*
+			for(int i = 0; i < level; i++){
+			q += ".[" + levels[i].levelName + "]";
+			}
+			if( level < maxLevel){
+				q += ".MEMBERS";
+			}
+		
+		*/
 		
 		return q;
 	}
