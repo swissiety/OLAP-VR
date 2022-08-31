@@ -71,8 +71,8 @@ public class SceneSwitcher : MonoBehaviour
 
         rotatingCube.transform.Rotate(0.5f, 0, 0, Space.Self);
         
-        if (Input.GetKeyDown(KeyCode.Space)){
- 	       ScreenCapture.CaptureScreenshot("shot_"+ (shots++) +".png", 4);
+        if (Input.GetKeyDown(KeyCode.I)){
+ 	       ScreenCapture.CaptureScreenshot("shot_"+ (shots++) +".png", 1);
 	}
         
         

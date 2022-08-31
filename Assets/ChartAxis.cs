@@ -149,6 +149,8 @@ public class ChartAxis : MonoBehaviour
 		descrText[0].SetText(cellDescrStr);
 		if(axisType != 2 ){
 			descrText[0].alignment = TextAlignmentOptions.TopRight;
+		}else{
+			descrText[0].alignment = TextAlignmentOptions.TopLeft;
 		}
 				
 		y++;

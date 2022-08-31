@@ -100,12 +100,19 @@ public class CubeState
     }
 	
        public string buildQuery(OLAPSchema schema){
-		return "SELECT "
-		 + " "+x.buildQuery(this, schema) +" ON 0, " 
-		 + " "+y.buildQuery(this, schema) +" ON 1, "
-		 + " "+z.buildQuery(this, schema) +" ON 2 "
+
+		string xStr = x.buildQuery(this, schema);
+		string yStr = y.buildQuery(this, schema);
+
+		string zStr = z.buildQuery(this, schema)+".Item(0)";
+		
+		return "SELECT [Measures].["  + measure + "] ON 0,"
+		 + " "+ xStr +" ON 1,"
+		 + " "+ yStr +" ON 2,"
+		 + " "+ zStr +" ON 3"
 		 +" FROM ["+ cubeName +"]" 
-		 + "WHERE [Measures].["  + measure + "] ";
+		 + " "
+		 +"";
 		
 		/*
 		return "SELECT "
@@ -134,27 +141,17 @@ public class AxisState
 	
 	public string buildQuery(CubeState cstate, OLAPSchema schema){
 		string q = " [" + dimension + "]";
+		/*
 		List<Level> levels = schema.getCubesDimension(cstate.cubeName, dimension).hierarchy[0].levels;
 		for(int i = 0; i < level; i++){
 			q += ".[" + levels[i].levelName + "]";
 		}
 		if( level < maxLevel){
-			q += ".MEMBERS";
+			q +=".CHILDREN";
 		}
-		
-		
-		
-		/*
-			for(int i = 0; i < level; i++){
-			q += ".[" + levels[i].levelName + "]";
-			}
-			if( level < maxLevel){
-				q += ".MEMBERS";
-			}
-		
 		*/
-		
-		return q;
+		return q = "Descendants("+ q +", "+ (level+1) +")";
+;
 	}
 	
 	public bool DrillDown(){

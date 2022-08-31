@@ -16,6 +16,7 @@ public class OLAPCube : MonoBehaviour
 	public TMP_Text measureText;	
 	public Button undoButton;	
 	public GameObject tableHolder;
+	public GameObject followThingy;
 	
 	public GameObject chartHolder;
 	// Reference to the Prefab. Drag a Prefab into this field in the Inspector.
@@ -27,7 +28,8 @@ public class OLAPCube : MonoBehaviour
 	
 	Stack<CubeState> undoStack = new Stack<CubeState>();
 	
-	bool isSliceMode = true;
+	bool isSliceMode = false;
+	int requestCounter = 1;
 	
     void Awake(){
     
@@ -51,12 +53,7 @@ public class OLAPCube : MonoBehaviour
 	public void initCubeState( CubeState cs ){
 		
 		cube = cs;
-	    	
-		// reset target
-		Quaternion initrotation =  Quaternion.Euler(0, 90, 0);
-	    	target.transform.localRotation = initrotation; 
-	    	transform.localRotation = initrotation;
-	    	
+	    		    	
 		// update max hierarhy depths
 		cube.x.maxLevel = requests.GetMaxLevelDepth( cube.x.dimension);
 		cube.y.maxLevel = requests.GetMaxLevelDepth( cube.y.dimension);
@@ -67,7 +64,7 @@ public class OLAPCube : MonoBehaviour
 		UpdateAxis( cube.y);
 		UpdateAxis( cube.z);
 		UpdateCoordinateSystem();
-				
+		
 		measureText.SetText( cube.measure );
 		UpdateResults();
 	
@@ -89,7 +86,7 @@ public class OLAPCube : MonoBehaviour
 			Debug.Log("queryExec canceled.");
 			StopCoroutine(queryExecRoutine);
 		}
-		// FIXME queryExecRoutine = StartCoroutine( requests.loadValues( cube, OnResult ) );
+		queryExecRoutine = StartCoroutine( requests.loadValues( cube, OnResult ) );
 	}
 	
 	public void OnResult( ResultSet result ){
@@ -100,9 +97,20 @@ public class OLAPCube : MonoBehaviour
 			Debug.Log("update results failed");
 			return;
 		}
+			int c = result.getAxis("COLUMNS").positions.GetLength(0) ;
+			int r = result.getAxis("ROWS").positions.GetLength(0);
+			int p = result.getAxis("PAGES").positions.GetLength(0);
+			int ch = result.getAxis("CHAPTERS").positions.GetLength(0);
 			
+
 		Debug.Log("update results");
-		drawTable( result );		
+		// DEBUG HELP! otherwise it eats up memory...
+		if( c < 50 && r < 50 && p < 50 && ch < 50 ){
+			drawTable( result );
+		}else{
+			// + "PAGES:" + p + "CHAPTERS:" + ch
+			drawResultMessage("MDX SUCCESS: COLS"+ c + " ROWS"+ r , false );		
+		}		
 	
 	} 
 
@@ -184,6 +192,12 @@ public class OLAPCube : MonoBehaviour
     Color cellCol =  new Color(0.246f, 0.059f, 0.106f, 1.000f);
     public void UpdateCoordinateSystem(){
 	
+	// reset target
+	Quaternion initrotation = Quaternion.Euler(0, 90, 0);
+    	target.transform.localRotation = initrotation; 
+    	transform.localRotation = initrotation;
+
+	
 	var xMember = requests.listMembersOfLevel( cube.x );
     	var yMember = requests.listMembersOfLevel( cube.y );
     	var zMember = requests.listMembersOfLevel( cube.z ); 
@@ -206,7 +220,7 @@ public class OLAPCube : MonoBehaviour
         grid = new GameObject[xH,yH,zH];
 	
     	
-	float scale = 8;	    	
+	float scale = 15;	    	
     	float spacing = 1.2f;
         float maxDim = maxDescr*spacing;
 
@@ -218,7 +232,6 @@ public class OLAPCube : MonoBehaviour
 	// reset parent scaling
 	transform.localScale = new Vector3(1,1,1);
 	target.transform.localScale = new Vector3(1,1,1);
-
 	
 	for(int x = 0; x < xH; x++){
 	
@@ -272,6 +285,12 @@ public class OLAPCube : MonoBehaviour
 	     		child.resetColor();
 		 }
 		 highlightedCells.Clear();
+		 
+		 foreach ( GameObject gr in grid){
+		 	Renderer r = gr.GetComponent<Renderer>();
+		 	Color oldColor = r.material.color;
+		 	r.material.color = new Color(oldColor.r,oldColor.g,oldColor.b, 1.0f);
+		 }
 	}
 	
 	
@@ -280,52 +299,37 @@ public class OLAPCube : MonoBehaviour
      	// reset
      	resetHighlightedCells();
 
-   	switch(axis){
-    	case 0:
-    		{
-    		int z = index;
-    		for( int x = 0; x < grid.GetLength(0); x++ ){
-	    		for( int y = 0; y < grid.GetLength(1); y++ ){
-	    			CellCube cc = ((CellCube)transform.Find("cell_"+ x + "_" + y + "_" +z ).GetComponent(typeof(CellCube)));
-	    			cc.setColor( color );
-	    			highlightedCells.Add(cc);
-	    		}
-    		}
-    		}
-    	break;
-    	case 1:
-    	{
-    	    	int z = index;
-    		for( int x = 0; x < grid.GetLength(0); x++ ){
-	    		for( int y = 0; y < grid.GetLength(1); y++ ){
-	    			CellCube cc = ((CellCube) transform.Find("cell_"+ x + "_" + y + "_" +z ).GetComponent(typeof(CellCube)));
-	    			cc.setColor( color );
-	    			highlightedCells.Add(cc);
-	    		}
-    		}
-    	}
-    	break;
-    	case 2:
-    	{
-    		int z = index;
-    		for( int x = 0; x < grid.GetLength(0); x++ ){
-	    		for( int y = 0; y < grid.GetLength(1); y++ ){
-	    			CellCube cc = ( (CellCube) transform.Find("cell_"+ x + "_" + y + "_" +z ).GetComponent(typeof(CellCube)) );
-	    			cc.setColor( color );
-	    			highlightedCells.Add(cc);
-	    		}
-    		}
-    	}
-   	break;
-   
-    	}
-    }
+    	    	
+	    	for( int x = 0; x < grid.GetLength(0); x++ ){    		
+	    	for( int y = 0; y < grid.GetLength(1); y++ ){
+    		for( int z = 0; z < grid.GetLength(2); z++ ){
+				bool cond = false;
+				switch(axis){
+				case 0: cond = (x == index); break;
+				case 1: cond = (y == index); break;
+				case 2: cond = (z == index); break;
+				}
 
+				CellCube cc = ((CellCube) transform.Find("cell_"+ x + "_" + y + "_" +z ).GetComponent(typeof(CellCube)));				
+	    			if( cond ){
+	    				cc.setColor( color );
+	    				highlightedCells.Add(cc);
+	    			}else{
+	    			 	Color oldColor = cc.GetComponent<Renderer>().material.color;
+				 	cc.GetComponent<Renderer>().material.color = new Color(oldColor.r,oldColor.g,oldColor.b, 0.5f);
+	    			}
+	    	}
+    		}
+    		}
+    	}
 
+    
+
+	int sliceAxis = -1;
+	CellCube clickedCell = null;
     // Update is called once per frame
     void Update()
     {        
-    
         
         // Axis' Stuff
 	if(Input.GetMouseButtonDown(0)){
@@ -340,27 +344,10 @@ public class OLAPCube : MonoBehaviour
 		   	if( isSliceMode ){
 		   		
 		   		if( hit.collider.gameObject.transform.parent.name == "CubeHolder"){
-		   			
-		   			string cellname = hit.collider.gameObject.name;
-		   			cellname = cellname.Substring(5);
-		   			string[]  cellAxes = cellname.Split('_');
-		   			int cx = Int32.Parse(cellAxes[0]);
-		   			int cy = Int32.Parse(cellAxes[1]);
-		   			int cz = Int32.Parse(cellAxes[2]);
-		   			Debug.Log("Clicked on: "+ cx + "#"+cy+"#"+cz);
-		   			
-		   			if( cx == 0 || cx == grid.GetLength(0) ){
-		   				Debug.Log("X Slice");
-						highlightSlice( 0, cx, Color.white);
-		   			}else if( cy == 0 || cy == grid.GetLength(1)  ){
-		   				Debug.Log("Y Slice");
-		   				highlightSlice( 1, cy, Color.white);
-
-		   			}else if( cz == 0 || cz == grid.GetLength(2)  ){
-		   				Debug.Log("Z Slice");
-		   				highlightSlice( 2, cz, Color.white);
-		   			}
-		   			
+					Debug.Log(hit.collider.gameObject.name);
+		   			 clickedCell = (CellCube) ( (CellCube) transform.Find( hit.collider.gameObject.name ).GetComponent(typeof(CellCube)) );;
+	    				clickedCell.setColor( Color.white );
+	    				highlightedCells.Add(clickedCell);
 		   		
 		   		} 
 		   	 
@@ -386,11 +373,67 @@ public class OLAPCube : MonoBehaviour
 			    mouseDelta *= 0.02f; // reduction of rotation speed
 			    transform.rotation = Quaternion.Euler(mouseDelta.y, -mouseDelta.x, 0) * transform.rotation;
 		    }
+		    
+		    if(isSliceMode && clickedCell != null ){ 		
+			var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+
+			if(Physics.Raycast(ray,out hit)){
+		   		if( hit.collider.gameObject.transform.parent.name == "CubeHolder"){
+		
+			
+		   			int[] clickedcellname = parseCellName(clickedCell.name);
+		   			int ccx = clickedcellname[0]; 
+		   			int ccy = clickedcellname[1]; 
+		   			int ccz = clickedcellname[2]; 
+		   			
+		   			int [] cellname = parseCellName(hit.collider.gameObject.name);
+		   			int cx = cellname[0]; 
+		   			int cy = cellname[1]; 
+		   			int cz = cellname[2]; 
+		   			
+		   			 			
+		   			if(  ccy != cy && ccx == cx ){
+		   				Debug.Log("X Slice");
+						highlightSlice( 0, cx, Color.white);
+						sliceAxis = 0;
+		   			}else if( ccx != cx && ccy == cy ){
+		   				Debug.Log("Y Slice");
+		   				highlightSlice( 1, cy, Color.white);
+		   				sliceAxis = 1;
+
+		   			}else if( ccz != cz && (ccx == cx || ccy == cy) ){
+						// TODO: make a difference if clicked on x axis side or on z axis side!
+						Debug.Log("Z Slice");
+		   				highlightSlice( 1, cy, Color.white);
+		   				sliceAxis = 1;
+		   			}else{
+		   				// resetHighlightedCells();
+		   			}
+				}
+			}
+		   }
 		}
 		else
 		{
 			if( isSliceMode ){
+				if(sliceAxis >= 0){
+					AxisState sliceAxisState = cube.getAxis( sliceAxis );
+					int idx = 0;
+					int [] indices = parseCellName(clickedCell.name);
+					switch(sliceAxis){
+						case 0: idx = indices[0]; break;
+						case 1: idx = indices[1]; break;
+						case 2: idx = indices[1]; break;
+					} 
+					Debug.Log(sliceAxisState.dimension);
+					string levelName = requests.listMembersOfLevel( sliceAxisState )[idx];
+					Toast.Show("Slice "+ sliceAxisState.dimension +" on "+ levelName , 2.0f);
+				}
+				
 				resetHighlightedCells();
+				clickedCell = null;
+				sliceAxis = -1;
 			}
 			
 		    // automatically move to the target position
@@ -405,11 +448,22 @@ public class OLAPCube : MonoBehaviour
 
         
     }
+    
+    int [] parseCellName( string clickedcellname){
+    	clickedcellname = clickedcellname.Substring(5);
+	string[]  clickedcellAxes = clickedcellname.Split('_');
+	int ccx = Int32.Parse(clickedcellAxes[0]);
+	int ccy = Int32.Parse(clickedcellAxes[1]);
+	int ccz = Int32.Parse(clickedcellAxes[2]);
+    	return new int[3]{ccx, ccy, ccz};
+    } 
 
     void DragEnd()
     {
 	if (Input.GetKeyDown(KeyCode.S)){
 		isSliceMode = !isSliceMode;
+		followThingy.SetActive(isSliceMode);
+
 	}
 
 
@@ -451,10 +505,6 @@ public class OLAPCube : MonoBehaviour
 		    {
 		    	DownRightSwipe();
 		    }
-	      }else{
-	      		// reset
-	      		// Debug.Log("RESET swipe");
-	      		rotateIt(0, 0, 0);	
 	      }
         }
     }
@@ -530,25 +580,14 @@ public class OLAPCube : MonoBehaviour
  // rotation = target.transform.rotation * Quaternion.Inverse(Quaternion.Euler(0,75,0))* Quaternion.Euler(x, y, z) ; //.
 	
 	target.transform.Rotate(0,75,0, Space.World);
-	
-	Vector3 rAxis;
 	if( x != 0 ){
-		rAxis = Vector3.back;
-		target.transform.Rotate(rAxis, x, Space.World);
+		target.transform.Rotate(Vector3.back, x, Space.World);
 	}else if( y!= 0 ){
-		rAxis = Vector3.up;
-		target.transform.Rotate(rAxis, y, Space.World);
+		target.transform.Rotate(Vector3.up, y, Space.World);
 	}else if( z != 0 ){
-		rAxis = Vector3.right;
-		target.transform.Rotate(rAxis, z, Space.World);
-
-	}	
-//	target.transform.localRotation *= Quaternion.Euler(x, y, z);
-
-
+		target.transform.Rotate(Vector3.right, z, Space.World);
+	}
 	target.transform.Rotate(0,-75,0, Space.World);
-	
-
 
     }
     
@@ -587,31 +626,40 @@ public class OLAPCube : MonoBehaviour
     
     void drawResultMessage( string msg, bool errorflag){
     
+    	cleanupResultTable();
+    
         GridLayoutGroup glg = tableHolder.GetComponent<GridLayoutGroup>();
  	glg.constraintCount = 1;
+ 	glg.cellSize = new Vector2(500, 50);
+	glg.childAlignment = TextAnchor.MiddleCenter;
 
 	GameObject obj =  new GameObject();
  	TextMeshProUGUI emptyinfo = obj.AddComponent<TextMeshProUGUI>();
  	emptyinfo.SetText(msg);
- 	emptyinfo.fontSize = 12;
+ 	emptyinfo.fontSize = 48;
  	emptyinfo.color = errorflag? Color.red : Color.black;
+ 	emptyinfo.alignment = TextAlignmentOptions.Center;
  	obj.transform.SetParent(tableHolder.transform);
  	
     }
     
     
+    void cleanupResultTable(){
+    	 foreach (Transform child in tableHolder.transform) {
+     		GameObject.Destroy(child.gameObject);
+	 }
+    }
+    
     void drawTable ( ResultSet results ) {
 		
 		
 	// cleanup
-	 foreach (Transform child in tableHolder.transform) {
-     		GameObject.Destroy(child.gameObject);
-	 }
+	cleanupResultTable();
 
 
          int colCount;
          if( results == null ){
-		drawResultMessage("Calculate Results for "+ cube.measure +"..", false);
+		drawResultMessage("Calculate Results for "+ cube.measure +" #"+ (requestCounter++) +".."  , false);
 		return;
 	 }else{
 	 
@@ -630,35 +678,25 @@ public class OLAPCube : MonoBehaviour
 	 	float width = 1.0f;
 	 	float height = 1.0f;
 
-		// FIXME
-		glg.constraintCount = 42;
+		ResultAxis rows = results.getAxis("ROWS");
+		ResultAxis pages = results.getAxis("PAGES");
+		
+		glg.cellSize = new Vector2(250, 40);
+		glg.constraintCount = rows.positions.GetLength(0);
  	
 
 		foreach( ResultCell cell in results.cells ){
-			
 			GameObject obj =  new GameObject();
 		 	TextMeshProUGUI tcell = obj.AddComponent<TextMeshProUGUI>();
-		 	tcell.SetText( cell.ordinal + " => "+ cell.formattedValue);
-		 	tcell.fontSize = 10;
+		 	// cell.getCoordinates() + " => "+
+		 	tcell.SetText(  String.IsNullOrEmpty(cell.formattedValue) ? "-" : cell.formattedValue );
+		 	tcell.fontSize = 36;
 		 	tcell.color = Color.black;
 	 	 	tcell.transform.SetParent(tableHolder.transform);
-		 	// emptyinfo.alignment = AlignmentTypes.Center;
+		 	tcell.alignment = TextAlignmentOptions.Center;
 
 		}
 
-/*
-		// FIXME: incorporate texts
-		 
-		 // draw lines
-		 for(int i = rows; i >= 0; i--){
-		 	// width
-		 }
-		 
-		 
-		 for(int i = cols; i >= 0; i--){
-		 	// height
-		 }
-		 */
 		 
 		 
          }

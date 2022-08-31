@@ -37,8 +37,16 @@ public class ResultCell{
    	public float value;
    	public int ordinal;
    	
-    	//  coordinates
+    	public int[] coordinates;
     	// string error;
+    	
+    	public string getCoordinates(){
+    		string res = "[";
+    		for(int i = 1; i+1 < coordinates.GetLength(0); i++){
+    			res += coordinates[i]+",";
+    		}
+    		return res+"]";
+    	}
 }
 [System.Serializable]
 public class ResultAxis{
@@ -148,7 +156,7 @@ public class RequestMgr : MonoBehaviour
 		using ( var webRequest = CreatePostRequest( url, queryStr) ){
    			yield return webRequest.SendWebRequest();
    			
-   			if( webRequest.error != null ){
+   			if( webRequest.error != null || true ){
 				Debug.Log(webRequest.downloadHandler.text);
    			}
    			
@@ -157,8 +165,6 @@ public class RequestMgr : MonoBehaviour
    		}
 	}
 	
-	
-	
 	protected IEnumerator loadDimension(string dimensionName){
 		loadSchema();
 		
@@ -166,7 +172,7 @@ public class RequestMgr : MonoBehaviour
 		//Debug.Log( dimensionName );
 		Dimension dim = getCubesDimension(dimensionName);
 		string tableName = dim.hierarchy[0].name; // table.name;
-		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select { ["+ dim.name +"].MEMBERS } on columns from ["+ cube +"]\"}";
+		string query = "{ \"connectionName\" : \""+ connectionName +"\", \"query\" : \"select ["+ dim.name +"].MEMBERS on columns from ["+ cube +"]\"}";
 		// Debug.Log(query);
 		string url = buildBaseUrl()+"query";
 		using ( var webRequest = CreatePostRequest( url, query) ){
@@ -175,7 +181,7 @@ public class RequestMgr : MonoBehaviour
 	   		ResultSet resultSet = JsonUtility.FromJson<ResultSet>(webRequest.downloadHandler.text);
 	   		
 	   		
-   			Debug.Log( "cells"+ resultSet.cells.GetLength(0) +  " axes"+ resultSet.axes.GetLength(0) );
+   			// Debug.Log( "cells"+ resultSet.cells.GetLength(0) +  " axes"+ resultSet.axes.GetLength(0) );
 			ResultAxis axis = resultSet.getAxis("COLUMNS");
 			
 			int levelCount = dim.hierarchy[0].levels.Count;
@@ -198,7 +204,10 @@ public class RequestMgr : MonoBehaviour
 						levelIdx = 0;
 					}
 					
-					membersOfLevelCache[ dim.hierarchy[0].levels[ levelIdx] ].Add( posMember.memberValue ); 	
+					if(!posMember.memberLevelName.EndsWith(".[(All)]") ){
+					//	Debug.Log( dim.name +" "+posMember.memberValue);
+						membersOfLevelCache[ dim.hierarchy[0].levels[ levelIdx] ].Add( posMember.memberValue ); 	
+					}
 					posMember = posMember.parentMember;
 				}while(posMember != null);
 				
